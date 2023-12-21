@@ -93,8 +93,8 @@ internal void Win32UpdateWindow(OffScreenBuffer Buffer, HDC DeviceContext, int C
 {
     StretchDIBits(
         DeviceContext,
-        0, 0, Buffer.Width, Buffer.Height,
         0, 0, ClientWidth, ClientHeight,
+        0, 0, Buffer.Width, Buffer.Height,
         Buffer.Memory,
         &Buffer.Info,
         DIB_RGB_COLORS, SRCCOPY
@@ -115,8 +115,7 @@ LPARAM lParam)
     {
         case WM_SIZE:
         {   
-            WindowDimensions Dimensions = GetWindowDimensions(hwnd);
-            ResizeDIBSection(&BackBuffer, Dimensions.Width, Dimensions.Height);
+            
         }
             break;
         case WM_DESTROY:
@@ -165,6 +164,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
                     int nCmdShow) 
 {
     WNDCLASS WindowClass = {};
+
+    ResizeDIBSection(&BackBuffer, 1280, 720);
+
     WindowClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     WindowClass.lpfnWndProc = WindowProc;
     WindowClass.hInstance = hInstance;
