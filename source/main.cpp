@@ -1,9 +1,15 @@
 #include <windows.h>
 #include <stdint.h>
+#include <xinput.h>
 
 #define internal static
 #define local_persist static
 #define global_variable static
+
+// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+//    DEVELOPED BY CODING ALONG WITH MOLLY ROCKET'S EXCELLENT HANDMADE HERO YOUTUBE SERIES      //
+//                                    https://handmadehero.org/                                 //
+// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 struct OffScreenBuffer
 {
@@ -24,9 +30,42 @@ struct WindowDimensions
     int Height;
 };
 
+#define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
+#define XINPUTSETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
+
+typedef XINPUTGETSTATE(XGetState);
+typedef XINPUTSETSTATE(XSetState);
+
+XINPUTGETSTATE(XInputGetStateStub)
+{
+    return 0;
+}
+
+XINPUTSETSTATE(XInputSetStateStub)
+{
+    return 0;
+}
+
+global_variable XGetState *DyXInputGetState = XInputGetStateStub;
+global_variable XSetState *DyXInputSetState = XInputSetStateStub;
+
 //-------------------------------------------------------------------------------------------------------------
 
-WindowDimensions GetWindowDimensions(HWND Window) 
+internal void Win32LoadXInput(void) 
+{
+    HMODULE XInputLibrary = LoadLibraryA("xinput1_3.dll");
+
+    if (XInputLibrary) 
+    {
+        // GetProcAddress loads the address of the function in xinput.dll
+        DyXInputGetState = (XGetState *)GetProcAddress(XInputLibrary, "XInputGetState");
+        DyXInputSetState = (XSetState *)GetProcAddress(XInputLibrary, "XInputSetState");
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal WindowDimensions GetWindowDimensions(HWND Window) 
 {
     WindowDimensions Dimensions;
 
@@ -41,23 +80,86 @@ WindowDimensions GetWindowDimensions(HWND Window)
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void RenderWeirdGradient(OffScreenBuffer Buffer, int XOffset, int YOffset) 
+internal void HandleKeyboardInputs(WPARAM VKCode) 
 {
-    uint8_t *Row = (uint8_t *)Buffer.Memory;
+    if (VKCode == 0x57) 
+    {
+        // W Key
+    }
+    else if (VKCode == 0x41) 
+    {
+        // A Key
+    }
+    else if (VKCode == 	0x53) 
+    {
+        // S Key
+    }
+    else if (VKCode == 0x44) 
+    {
+        // D Key
+    }
+    else if (VKCode == 0x51) 
+    {
+        // Q Key
+    }
+    else if (VKCode == 0x45) 
+    {
+        // E Key
+    }
+    else if (VKCode == VK_UP) 
+    {
+        // Up Arrow Key
+    }
+    else if (VKCode == VK_DOWN) 
+    {
+        // Down Arrow Key
+    }
+    else if (VKCode == VK_LEFT) 
+    {
+        // Left Arrow Key
+    }
+    else if (VKCode == VK_RIGHT) 
+    {
+        // Right Arrow Key
+    }
+    else if (VKCode == VK_ESCAPE) 
+    {
+        // Escape Key
+    }
+    else if (VKCode == VK_SPACE) 
+    {
+        // Spacebar
+    }
+}
 
-    for (int Y = 0; Y < Buffer.Height; ++Y)
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal void RenderWeirdGradient(OffScreenBuffer *Buffer, int XOffset, int YOffset) 
+{
+    uint8_t *Row = (uint8_t *)Buffer->Memory;
+
+    for (int Y = 0; Y < Buffer->Height; ++Y)
     {
         uint32_t *Pixel = (uint32_t *)Row;
 
-        for (int X = 0; X < Buffer.Width; ++X) 
+        for (int X = 0; X < Buffer->Width; ++X) 
         {
             uint8_t Blue = X + XOffset;
             uint8_t Green = Y + YOffset;
+            uint8_t Red = Y + YOffset;
 
-            *Pixel++ = (Green << 8 )| Blue;
+            *Pixel++ = (Red << 16) |(Green << 8 )| Blue;
+
+            // Example of a bit-shift using binary numbers
+            // 01001011 00000000 00000000  (Red shifted)
+            // 00000000 01001011 00000000  (Green shifted)
+            // 00000000 00000000 00011001  (Blue)
+            // ---------------------------
+            // 01001011 01001011 00011001  (Result)
         }
 
-        Row += Buffer.Pitch;
+        Row += Buffer->Pitch;
     }
 }
 
@@ -89,14 +191,14 @@ internal void ResizeDIBSection(OffScreenBuffer *Buffer, int Width, int Height)
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void Win32UpdateWindow(OffScreenBuffer Buffer, HDC DeviceContext, int ClientWidth, int ClientHeight) 
+internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int ClientWidth, int ClientHeight) 
 {
     StretchDIBits(
         DeviceContext,
         0, 0, ClientWidth, ClientHeight,
-        0, 0, Buffer.Width, Buffer.Height,
-        Buffer.Memory,
-        &Buffer.Info,
+        0, 0, Buffer->Width, Buffer->Height,
+        Buffer->Memory,
+        &Buffer->Info,
         DIB_RGB_COLORS, SRCCOPY
     );
 }
@@ -104,10 +206,7 @@ internal void Win32UpdateWindow(OffScreenBuffer Buffer, HDC DeviceContext, int C
 
 //-------------------------------------------------------------------------------------------------------------
 
-LRESULT CALLBACK WindowProc(HWND hwnd,
-UINT uMsg,
-WPARAM wParam,
-LPARAM lParam) 
+internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 {
     LRESULT Result = 0;
 
@@ -133,6 +232,37 @@ LPARAM lParam)
             OutputDebugStringA("WM_ACTIVATEAPP\n");
         }
             break;
+        case WM_SYSKEYDOWN:
+        {
+
+        }
+            break;
+        case WM_SYSKEYUP:
+        {
+            
+        }
+            break;
+        case WM_KEYDOWN:
+        {
+            
+        }
+            break;
+        case WM_KEYUP:
+        {
+            // lParam is a 32-bit bit-field and we want to check if the 30th bit is set
+            // So 1 bit shifted by 30 will do this:
+            // Before shift: 00000000 00000000 00000000 00000001 (binary representation of 1 as a 32-bit integer)
+            // After shift: 01000000 00000000 00000000 00000000
+
+            bool WasDown = ((lParam & (1 << 30)) != 0);
+            bool IsDown = ((lParam & (1 << 31)) == 0);
+            if (WasDown != IsDown) 
+            {
+                HandleKeyboardInputs(wParam);
+            }
+        }
+            break;
+        
         case WM_PAINT:
         {
             PAINTSTRUCT Paint;
@@ -140,14 +270,13 @@ LPARAM lParam)
 
             WindowDimensions Dimensions = GetWindowDimensions(hwnd);
 
-            Win32UpdateWindow(BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
+            Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
             EndPaint(hwnd, &Paint);
             Result = 0;
         }
             break;
         default:
         {
-            OutputDebugStringA("default\n");
             Result = DefWindowProc(hwnd, uMsg, wParam, lParam);
         }
             break;
@@ -158,11 +287,9 @@ LPARAM lParam)
 
 //-------------------------------------------------------------------------------------------------------------
 
-int WINAPI WinMain(HINSTANCE hInstance,
-                    HINSTANCE hPrevInstance,
-                    LPSTR lpCmdLine,
-                    int nCmdShow) 
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
 {
+    Win32LoadXInput();
     WNDCLASS WindowClass = {};
 
     ResizeDIBSection(&BackBuffer, 1280, 720);
@@ -199,7 +326,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
                 MSG Message;
                 while (PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) 
                 {
-                    if (Message.message == WM_QUIT) 
+                    if (Message.message == WM_QUIT)
                     {
                         Running = false;
                     }
@@ -208,16 +335,48 @@ int WINAPI WinMain(HINSTANCE hInstance,
                     DispatchMessageA(&Message);
                 }
                 
-                PAINTSTRUCT Paint;
+                for (DWORD ControllerIndex = 0; ControllerIndex < XUSER_MAX_COUNT; ++ControllerIndex) 
+                {
+                    XINPUT_STATE ControllerState;
+
+                    if(DyXInputGetState(ControllerIndex, &ControllerState) == ERROR_SUCCESS) 
+                    {
+                        XINPUT_GAMEPAD *Pad = &ControllerState.Gamepad;
+
+                        bool DPadUp = (Pad->wButtons && XINPUT_GAMEPAD_DPAD_UP); 
+                        bool DPadDown = (Pad->wButtons && XINPUT_GAMEPAD_DPAD_DOWN); 
+                        bool DPadLeft = (Pad->wButtons && XINPUT_GAMEPAD_DPAD_LEFT); 
+                        bool DPadRight = (Pad->wButtons && XINPUT_GAMEPAD_DPAD_RIGHT); 
+
+                        bool Start = (Pad->wButtons && XINPUT_GAMEPAD_START); 
+                        bool Select = (Pad->wButtons && XINPUT_GAMEPAD_BACK); 
+
+                        bool L1 = (Pad->wButtons && XINPUT_GAMEPAD_LEFT_SHOULDER); 
+                        bool R1 = (Pad->wButtons && XINPUT_GAMEPAD_RIGHT_SHOULDER); 
+
+                        bool AButton = (Pad->wButtons && XINPUT_GAMEPAD_A); 
+                        bool BButton = (Pad->wButtons && XINPUT_GAMEPAD_B); 
+                        bool XButton = (Pad->wButtons && XINPUT_GAMEPAD_X); 
+                        bool YButton = (Pad->wButtons && XINPUT_GAMEPAD_Y);
+
+                        int16_t StickX = Pad->sThumbLX;
+                        int16_t StickY = Pad->sThumbLY;
+                    }
+                    else 
+                    {
+                        // Controller not available
+                    }
+                }
+
                 HDC DeviceContext = GetDC(WindowHandle);
-            
+
                 WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
+                
+                RenderWeirdGradient(&BackBuffer, XOffset, YOffset);
+                Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
 
-                Win32UpdateWindow(BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
-
-                RenderWeirdGradient(BackBuffer, XOffset, YOffset);
                 ReleaseDC(WindowHandle, DeviceContext);
-
+                
                 XOffset++;
                 YOffset++;
             }
