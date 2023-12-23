@@ -1,5 +1,5 @@
 @echo off
 mkdir build
 pushd build
-cl -Zi ../source/main.cpp user32.lib gdi32.lib
+cl -Zi /I"../includes" ../source/main.cpp ../source/glad.c user32.lib gdi32.lib opengl32.lib
 popd

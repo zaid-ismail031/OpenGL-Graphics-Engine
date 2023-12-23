@@ -1,6 +1,8 @@
 #include <windows.h>
 #include <stdint.h>
 #include <xinput.h>
+#include <glad/glad.h>
+#include <gl/GL.h>
 
 #define internal static
 #define local_persist static
@@ -30,6 +32,21 @@ struct WindowDimensions
     int Height;
 };
 
+global_variable float Vertices[] = 
+{
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f
+};
+
+const char *vertexShaderSource = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+
+
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
 #define XINPUTSETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
 
@@ -48,6 +65,22 @@ XINPUTSETSTATE(XInputSetStateStub)
 
 global_variable XGetState *DyXInputGetState = XInputGetStateStub;
 global_variable XSetState *DyXInputSetState = XInputSetStateStub;
+
+//-------------------------------------------------------------------------------------------------------------
+
+void *GetAnyGLFuncAddress(const char *name)
+{
+    void *p = (void *)wglGetProcAddress(name);
+    if(p == 0 ||
+        (p == (void*)0x1) || (p == (void*)0x2) || (p == (void*)0x3) ||
+        (p == (void*)-1) )
+    {
+        HMODULE module = LoadLibraryA("opengl32.dll");
+        p = (void *)GetProcAddress(module, name);
+    }
+
+    return p;
+}
 
 //-------------------------------------------------------------------------------------------------------------
 
@@ -76,6 +109,33 @@ internal WindowDimensions GetWindowDimensions(HWND Window)
     Dimensions.Height = ClientRect.bottom - ClientRect.top;
 
     return Dimensions;
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal void OpenGLFrameBufferSizeCallback(HWND Window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal void OpenGLCreateFrameBuffer() 
+{
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal void OpenGLCompileShaders() 
+{
+    unsigned int vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -214,8 +274,45 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
     {
         case WM_SIZE:
         {   
-            
+            WindowDimensions Dimensions = GetWindowDimensions(hwnd);
+            //OpenGLFrameBufferSizeCallback(hwnd, Dimensions.Width, Dimensions.Height);
         }
+        case WM_CREATE:
+        {
+            PIXELFORMATDESCRIPTOR pfd =
+            {
+                sizeof(PIXELFORMATDESCRIPTOR),
+                1,
+                PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,    // Flags
+                PFD_TYPE_RGBA,        // The kind of framebuffer. RGBA or palette.
+                32,                   // Colordepth of the framebuffer.
+                0, 0, 0, 0, 0, 0,
+                0,
+                0,
+                0,
+                0, 0, 0, 0,
+                24,                   // Number of bits for the depthbuffer
+                8,                    // Number of bits for the stencilbuffer
+                0,                    // Number of Aux buffers in the framebuffer.
+                PFD_MAIN_PLANE,
+                0,
+                0, 0, 0
+            };
+
+            HDC DeviceContext = GetDC(hwnd);
+            int pf = ChoosePixelFormat(DeviceContext, &pfd);
+            SetPixelFormat(DeviceContext, pf, &pfd);
+            HGLRC hglrc = wglCreateContext(DeviceContext);
+            wglMakeCurrent(DeviceContext, hglrc);
+            MessageBoxA(0,(char*)glGetString(GL_VERSION), "OPENGL VERSION",0);
+
+            //if (!gladLoadGLLoader((GLADloadproc)wglGetProcAddress)) 
+            //{
+            //    // Handle the error
+            //    return -1;
+            //}
+        }
+
             break;
         case WM_DESTROY:
         {
@@ -289,10 +386,18 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
 {
+    //bool GLLoaded = gladLoadGLLoader((GLADloadproc)GetAnyGLFuncAddress);
+
+    //if (!GLLoaded)
+    //{
+    //    OutputDebugStringA("Failed to initialize GLAD\n");
+    //    return -1;
+    //}
+
     Win32LoadXInput();
     WNDCLASS WindowClass = {};
-
-    ResizeDIBSection(&BackBuffer, 1280, 720);
+    //ResizeDIBSection(&BackBuffer, 1280, 720);
+    
 
     WindowClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     WindowClass.lpfnWndProc = WindowProc;
@@ -318,6 +423,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         if (WindowHandle != NULL) 
         {
+            HDC DeviceContext = GetDC(WindowHandle);
+            
+            //glViewport(0, 0, 800, 600);
+
             int XOffset = 0;
             int YOffset = 0;
             Running = true;
@@ -368,18 +477,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     }
                 }
 
-                HDC DeviceContext = GetDC(WindowHandle);
+                
 
                 WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
                 
-                RenderWeirdGradient(&BackBuffer, XOffset, YOffset);
+                //RenderWeirdGradient(&BackBuffer, XOffset, YOffset);
                 Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
 
-                ReleaseDC(WindowHandle, DeviceContext);
+                
                 
                 XOffset++;
                 YOffset++;
             }
+
+            ReleaseDC(WindowHandle, DeviceContext);
         }
         else 
         {
