@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <math.h>
 #include <stdint.h>
 #include <xinput.h>
 #include <glad/glad.h>
@@ -22,6 +23,7 @@ struct OffScreenBuffer
 
 global_variable bool Running;
 global_variable OffScreenBuffer BackBuffer;
+global_variable double ProgramElapsedTime;
 
 struct WindowDimensions
 {
@@ -82,6 +84,14 @@ const char *fragmentShaderSource = "#version 330 core\n"
 "void main()\n"
 "{\n"
 " FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"}\0";
+
+const char *uniformFragmentShaderSource = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"uniform vec4 ourColor;\n"
+"void main()\n"
+"{\n"
+" FragColor = ourColor;\n"
 "}\0";
 
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
@@ -202,16 +212,16 @@ internal void OpenGLElementBufferObject(OpenGLData *data)
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void OpenGLCompileShaders(OpenGLData *data) 
+internal void OpenGLCompileShaders(OpenGLData *data, const char *VertexShaderSource, const char *FragmentShaderSource) 
 {
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glShaderSource(vertexShader, 1, &VertexShaderSource, NULL);
     glCompileShader(vertexShader);
 
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glShaderSource(fragmentShader, 1, &FragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
 
     // Link shaders
@@ -223,6 +233,20 @@ internal void OpenGLCompileShaders(OpenGLData *data)
     glUseProgram(data->shaderProgram);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal void AlterFragmentShader(OpenGLData *data, const char *FragmentShaderSource) 
+{
+    int vertexColorLocation = glGetUniformLocation(data->shaderProgram, "ourColor");
+
+    if (vertexColorLocation != -1) 
+    {
+        float greenValue = (sin(ProgramElapsedTime) / 2) + 0.5;
+        glUseProgram(data->shaderProgram);
+        glUniform4f(vertexColorLocation, 0, greenValue, 0, 1);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -508,7 +532,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             OpenGLData data;
 
-            OpenGLCompileShaders(&data);
+            OpenGLCompileShaders(&data, vertexShaderSource, uniformFragmentShaderSource);
             OpenGLVertexArrayObject(&data, Rect_Vertices_Overlap, sizeof(Vertices));
             //OpenGLElementBufferObject(&data);
 
@@ -517,6 +541,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Running = true;
             while (Running) 
             {
+                LARGE_INTEGER frequency, start, end;
+
+                QueryPerformanceFrequency(&frequency);
+                QueryPerformanceCounter(&start);
+
                 MSG Message;
                 while (PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) 
                 {
@@ -568,7 +597,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glUseProgram(data.shaderProgram);
                 glBindVertexArray(data.VAO);
                 // Draw a triangle from the vertices
-                glDrawArrays(GL_TRIANGLES, 0, 3);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+
+                AlterFragmentShader(&data, uniformFragmentShaderSource);
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -585,6 +616,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 
                 //XOffset++;
                 //YOffset++;
+
+                QueryPerformanceCounter(&end);
+                ProgramElapsedTime += (double) (end.QuadPart - start.QuadPart) / frequency.QuadPart;
             }
 
             ReleaseDC(WindowHandle, DeviceContext);
