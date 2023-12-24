@@ -2,16 +2,13 @@
 #include <stdint.h>
 #include <xinput.h>
 #include <glad/glad.h>
-#include <gl/GL.h>
 
 #define internal static
 #define local_persist static
 #define global_variable static
 
-// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-//    DEVELOPED BY CODING ALONG WITH MOLLY ROCKET'S EXCELLENT HANDMADE HERO YOUTUBE SERIES      //
-//                                    https://handmadehero.org/                                 //
-// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+// WIN32 STUFF IS THANKS TO MOLLY ROCKET'S HANDMADE HERO WEB SERIES AT https://handmadehero.org/ 
+// OPENGL STUFF IS THANKS TO THE BOOK "LEARN OPENGL - GRAPHICS PROGRAMMING" BY JOE DE VRIES
 
 struct OffScreenBuffer
 {
@@ -39,6 +36,13 @@ global_variable float Vertices[] =
     0.0f, 0.5f, 0.0f
 };
 
+struct OpenGLData 
+{
+    unsigned int VBO;
+    unsigned int VAO;
+    unsigned int shaderProgram;
+};
+
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "void main()\n"
@@ -46,6 +50,12 @@ const char *vertexShaderSource = "#version 330 core\n"
 " gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 
+const char *fragmentShaderSource = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"}\0";
 
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
 #define XINPUTSETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
@@ -120,22 +130,46 @@ internal void OpenGLFrameBufferSizeCallback(HWND Window, int width, int height)
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void OpenGLCreateFrameBuffer() 
+internal void OpenGLVertexArrayObject(OpenGLData *data) 
 {
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glGenVertexArrays(1, &data->VAO);
+    glGenBuffers(1, &data->VBO);
+
+    glBindVertexArray(data->VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
+
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void OpenGLCompileShaders() 
+internal void OpenGLCompileShaders(OpenGLData *data) 
 {
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
+
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    // Link shaders
+    data->shaderProgram = glCreateProgram();
+    glAttachShader(data->shaderProgram, vertexShader);
+    glAttachShader(data->shaderProgram, fragmentShader);
+    glLinkProgram(data->shaderProgram);
+
+    glUseProgram(data->shaderProgram);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -263,6 +297,20 @@ internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int 
     );
 }
 
+//-------------------------------------------------------------------------------------------------------------
+
+internal void Win32UpdateOpenGLWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int ClientWidth, int ClientHeight) 
+{
+    StretchDIBits(
+        DeviceContext,
+        0, 0, ClientWidth, ClientHeight,
+        0, 0, Buffer->Width, Buffer->Height,
+        Buffer->Memory,
+        &Buffer->Info,
+        DIB_RGB_COLORS, SRCCOPY
+    );
+}
+
 
 //-------------------------------------------------------------------------------------------------------------
 
@@ -275,8 +323,9 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
         case WM_SIZE:
         {   
             WindowDimensions Dimensions = GetWindowDimensions(hwnd);
-            //OpenGLFrameBufferSizeCallback(hwnd, Dimensions.Width, Dimensions.Height);
+            OpenGLFrameBufferSizeCallback(hwnd, Dimensions.Width, Dimensions.Height);
         }
+            break;
         case WM_CREATE:
         {
             PIXELFORMATDESCRIPTOR pfd =
@@ -304,15 +353,15 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             SetPixelFormat(DeviceContext, pf, &pfd);
             HGLRC hglrc = wglCreateContext(DeviceContext);
             wglMakeCurrent(DeviceContext, hglrc);
-            MessageBoxA(0,(char*)glGetString(GL_VERSION), "OPENGL VERSION",0);
-
-            //if (!gladLoadGLLoader((GLADloadproc)wglGetProcAddress)) 
-            //{
-            //    // Handle the error
-            //    return -1;
-            //}
+            
+            if (!gladLoadGLLoader((GLADloadproc)GetAnyGLFuncAddress))
+            {
+                // Handle the error
+                MessageBoxA(0, "Failed to initialize GLAD", "Error", MB_ICONERROR);
+                return -1;
+            }
+            //MessageBoxA(0,(char*)glGetString(GL_VERSION), "OPENGL VERSION",0);
         }
-
             break;
         case WM_DESTROY:
         {
@@ -425,7 +474,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         {
             HDC DeviceContext = GetDC(WindowHandle);
             
-            //glViewport(0, 0, 800, 600);
+            WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
+            OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
+
+            OpenGLData data;
+
+            OpenGLCompileShaders(&data);
+            OpenGLVertexArrayObject(&data);
 
             int XOffset = 0;
             int YOffset = 0;
@@ -477,17 +532,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     }
                 }
 
+                glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT);
                 
+                glUseProgram(data.shaderProgram);
+                glBindVertexArray(data.VAO);
+                // Draw a triangle from the vertices
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+
+                // Swap the front and back buffers
+                SwapBuffers(DeviceContext);
 
                 WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
                 
                 //RenderWeirdGradient(&BackBuffer, XOffset, YOffset);
-                Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
-
+                //Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
                 
-                
-                XOffset++;
-                YOffset++;
+                //XOffset++;
+                //YOffset++;
             }
 
             ReleaseDC(WindowHandle, DeviceContext);
