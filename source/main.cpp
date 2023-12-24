@@ -8,7 +8,7 @@
 #define global_variable static
 
 // WIN32 STUFF IS THANKS TO MOLLY ROCKET'S HANDMADE HERO WEB SERIES AT https://handmadehero.org/ 
-// OPENGL STUFF IS THANKS TO THE BOOK "LEARN OPENGL - GRAPHICS PROGRAMMING" BY JOE DE VRIES
+// OPENGL STUFF IS THANKS TO THE BOOK "LEARN OPENGL - GRAPHICS PROGRAMMING" BY JOEY DE VRIES
 
 struct OffScreenBuffer
 {
@@ -36,8 +36,35 @@ global_variable float Vertices[] =
     0.0f, 0.5f, 0.0f
 };
 
+global_variable float Rect_Vertices_Overlap[] 
+{
+    // first triangle
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, 0.5f, 0.0f, // top left
+    // second triangle
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f // top left
+};
+
+global_variable float Rect_Vertices[] = 
+{
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f // top left
+};
+
+global_variable unsigned int Indices[] = 
+{   // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3 // second triangle
+};
+
 struct OpenGLData 
 {
+    unsigned int EBO;
     unsigned int VBO;
     unsigned int VAO;
     unsigned int shaderProgram;
@@ -130,15 +157,41 @@ internal void OpenGLFrameBufferSizeCallback(HWND Window, int width, int height)
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void OpenGLVertexArrayObject(OpenGLData *data) 
+internal void OpenGLVertexArrayObject(OpenGLData *data, float *VerticesInput, size_t VerticesSize) 
 {
+    // Vertex Buffer Object and Vertex Array Object
     glGenVertexArrays(1, &data->VAO);
     glGenBuffers(1, &data->VBO);
 
     glBindVertexArray(data->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, VerticesSize, (const void *)VerticesInput, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+internal void OpenGLElementBufferObject(OpenGLData *data) 
+{
+    // Vertex Buffer Object and Vertex Array Object
+    glGenVertexArrays(1, &data->VAO);
+    glGenBuffers(1, &data->VBO);
+
+    glBindVertexArray(data->VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Rect_Vertices), Rect_Vertices, GL_STATIC_DRAW);
+
+    // Element Buffer Object
+    glGenBuffers(1, &data->EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data->EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -299,21 +352,6 @@ internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int 
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void Win32UpdateOpenGLWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int ClientWidth, int ClientHeight) 
-{
-    StretchDIBits(
-        DeviceContext,
-        0, 0, ClientWidth, ClientHeight,
-        0, 0, Buffer->Width, Buffer->Height,
-        Buffer->Memory,
-        &Buffer->Info,
-        DIB_RGB_COLORS, SRCCOPY
-    );
-}
-
-
-//-------------------------------------------------------------------------------------------------------------
-
 internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 {
     LRESULT Result = 0;
@@ -435,19 +473,10 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
 {
-    //bool GLLoaded = gladLoadGLLoader((GLADloadproc)GetAnyGLFuncAddress);
-
-    //if (!GLLoaded)
-    //{
-    //    OutputDebugStringA("Failed to initialize GLAD\n");
-    //    return -1;
-    //}
-
     Win32LoadXInput();
     WNDCLASS WindowClass = {};
     //ResizeDIBSection(&BackBuffer, 1280, 720);
     
-
     WindowClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     WindowClass.lpfnWndProc = WindowProc;
     WindowClass.hInstance = hInstance;
@@ -480,7 +509,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLData data;
 
             OpenGLCompileShaders(&data);
-            OpenGLVertexArrayObject(&data);
+            OpenGLVertexArrayObject(&data, Rect_Vertices_Overlap, sizeof(Vertices));
+            //OpenGLElementBufferObject(&data);
 
             int XOffset = 0;
             int YOffset = 0;
@@ -540,10 +570,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // Draw a triangle from the vertices
                 glDrawArrays(GL_TRIANGLES, 0, 3);
 
+                // Draw a rectangle from the vertices
+                //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+                glBindVertexArray(0);
+
                 // Swap the front and back buffers
                 SwapBuffers(DeviceContext);
 
-                WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
+                //WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
                 
                 //RenderWeirdGradient(&BackBuffer, XOffset, YOffset);
                 //Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
