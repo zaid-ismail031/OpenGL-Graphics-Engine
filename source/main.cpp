@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <xinput.h>
 #include <glad/glad.h>
+#include "shaders.h"
 
 #define internal static
 #define local_persist static
@@ -64,6 +65,14 @@ global_variable unsigned int Indices[] =
     1, 2, 3 // second triangle
 };
 
+global_variable float Vertices_With_Color[] =
+{
+    // positions       // colors
+    0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+    0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f // top
+};
+
 struct OpenGLData 
 {
     unsigned int EBO;
@@ -79,6 +88,16 @@ const char *vertexShaderSource = "#version 330 core\n"
 " gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "}\0";
 
+const char *vertexShaderSourceWithColor = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"layout (location = 1) in vec3 aColor;\n"
+"out vec3 ourColor;\n"
+"void main()\n"
+"{\n"
+" gl_Position = vec4(aPos, 1.0);\n"
+" ourColor = aColor;\n"
+"}\0";
+
 const char *fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
 "void main()\n"
@@ -92,6 +111,14 @@ const char *uniformFragmentShaderSource = "#version 330 core\n"
 "void main()\n"
 "{\n"
 " FragColor = ourColor;\n"
+"}\0";
+
+const char *fragShaderForColorVertex = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"in vec3 ourColor;\n"
+"void main()\n"
+"{\n"
+" FragColor = vec4(ourColor, 1.0);\n"
 "}\0";
 
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
@@ -178,11 +205,14 @@ internal void OpenGLVertexArrayObject(OpenGLData *data, float *VerticesInput, si
 
     glBufferData(GL_ARRAY_BUFFER, VerticesSize, (const void *)VerticesInput, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindVertexArray(0);
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -532,8 +562,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             OpenGLData data;
 
-            OpenGLCompileShaders(&data, vertexShaderSource, uniformFragmentShaderSource);
-            OpenGLVertexArrayObject(&data, Rect_Vertices_Overlap, sizeof(Vertices));
+            OpenGLCompileShaders(&data, vertexShaderSourceWithColor, fragShaderForColorVertex);
+            OpenGLVertexArrayObject(&data, Vertices_With_Color, sizeof(Vertices_With_Color));
             //OpenGLElementBufferObject(&data);
 
             int XOffset = 0;
@@ -597,9 +627,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glUseProgram(data.shaderProgram);
                 glBindVertexArray(data.VAO);
                 // Draw a triangle from the vertices
-                glDrawArrays(GL_TRIANGLES, 0, 6);
+                glDrawArrays(GL_TRIANGLES, 0, 3);
 
-                AlterFragmentShader(&data, uniformFragmentShaderSource);
+                //AlterFragmentShader(&data, uniformFragmentShaderSource);
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -622,6 +652,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
 
             ReleaseDC(WindowHandle, DeviceContext);
+            glDeleteVertexArrays(1, &data.VAO);
+            glDeleteBuffers(1, &data.VBO);
+            glDeleteProgram(data.shaderProgram);
         }
         else 
         {
