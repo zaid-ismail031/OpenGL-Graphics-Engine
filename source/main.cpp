@@ -563,8 +563,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
             OpenGLData data;
-
-            OpenGLCompileShaders(&data, vertexShaderSourceWithColor, fragShaderForColorVertex);
+            Shader shader("../data/shaders/ColorTriangle.vert", "../data/shaders/ColorTriangle.frag");
+            //OpenGLCompileShaders(&data, vertexShaderSourceWithColor, fragShaderForColorVertex);
             OpenGLVertexArrayObject(&data, Vertices_With_Color, sizeof(Vertices_With_Color));
             //OpenGLElementBufferObject(&data);
 
@@ -626,7 +626,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
                 
-                glUseProgram(data.shaderProgram);
+                //glUseProgram(data.shaderProgram);
+                shader.use();
                 glBindVertexArray(data.VAO);
                 // Draw a triangle from the vertices
                 glDrawArrays(GL_TRIANGLES, 0, 3);
