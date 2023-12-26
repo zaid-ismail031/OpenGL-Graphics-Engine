@@ -4,6 +4,7 @@
 #include <xinput.h>
 #include <glad/glad.h>
 #include "shaders.h"
+#include "text.h"
 
 #define internal static
 #define local_persist static
@@ -184,6 +185,7 @@ internal WindowDimensions GetWindowDimensions(HWND Window)
 
     return Dimensions;
 }
+
 
 //-------------------------------------------------------------------------------------------------------------
 

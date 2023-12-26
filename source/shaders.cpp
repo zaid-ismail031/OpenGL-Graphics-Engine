@@ -1,9 +1,4 @@
-#include <glad/glad.h>
 #include "shaders.h"
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 
 //-------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +54,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     };
     
     // fragment Shader
-    vertex = glCreateShader(GL_FRAGMENT_SHADER);
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(vertex, 1, &fShaderCode, NULL);
     glCompileShader(vertex);
     // print compile errors if any
