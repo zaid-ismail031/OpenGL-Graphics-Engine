@@ -86,6 +86,20 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 
 //-------------------------------------------------------------------------------------------------------------
 
+void Shader::alterFragmentShader(const char* fragmentPath, const char* uniformVariableName, double programElapsedTime) 
+{
+    int vertexColorLocation = glGetUniformLocation(this->ID, uniformVariableName);
+
+    if (vertexColorLocation != -1) 
+    {
+        float greenValue = (sin(programElapsedTime) / 2) + 0.5;
+        glUseProgram(this->ID);
+        glUniform4f(vertexColorLocation, 0, greenValue, 0, 1);
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
 void Shader::use() 
 {
     glUseProgram(this->ID);
@@ -110,6 +124,13 @@ void Shader::setInt(const std::string &name, int value) const
 void Shader::setFloat(const std::string &name, float value) const
 {
     glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
 //-------------------------------------------------------------------------------------------------------------

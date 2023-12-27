@@ -5,6 +5,11 @@
 #include <glad/glad.h>
 #include "shaders.h"
 #include "text.h"
+#include "textures.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define internal static
 #define local_persist static
@@ -74,6 +79,60 @@ global_variable float Vertices_With_Color[] =
     0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f // top
 };
 
+global_variable float Rectangle_With_Texture[] =
+{
+    // positions       // colors    // texture coords
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+};
+
+float Cube_Vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
+
+
 struct OpenGLData 
 {
     unsigned int EBO;
@@ -81,46 +140,6 @@ struct OpenGLData
     unsigned int VAO;
     unsigned int shaderProgram;
 };
-
-const char *vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-" gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-
-const char *vertexShaderSourceWithColor = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec3 aColor;\n"
-"out vec3 ourColor;\n"
-"void main()\n"
-"{\n"
-" gl_Position = vec4(aPos, 1.0);\n"
-" ourColor = aColor;\n"
-"}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\0";
-
-const char *uniformFragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"uniform vec4 ourColor;\n"
-"void main()\n"
-"{\n"
-" FragColor = ourColor;\n"
-"}\0";
-
-const char *fragShaderForColorVertex = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"in vec3 ourColor;\n"
-"void main()\n"
-"{\n"
-" FragColor = vec4(ourColor, 1.0);\n"
-"}\0";
 
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
 #define XINPUTSETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
@@ -207,19 +226,20 @@ internal void OpenGLVertexArrayObject(OpenGLData *data, float *VerticesInput, si
 
     glBufferData(GL_ARRAY_BUFFER, VerticesSize, (const void *)VerticesInput, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);
+    //glBindVertexArray(0);s
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void OpenGLElementBufferObject(OpenGLData *data) 
+internal void OpenGLElementBufferObject(OpenGLData *data, float *VerticesInput, size_t VerticesSize, unsigned int *IndicesInput, size_t IndicesSize) 
 {
     // Vertex Buffer Object and Vertex Array Object
     glGenVertexArrays(1, &data->VAO);
@@ -228,57 +248,51 @@ internal void OpenGLElementBufferObject(OpenGLData *data)
     glBindVertexArray(data->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Rect_Vertices), Rect_Vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, VerticesSize, (const void *)VerticesInput, GL_STATIC_DRAW);
 
     // Element Buffer Object
     glGenBuffers(1, &data->EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,  IndicesSize, (const void *)IndicesInput, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    // texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void OpenGLCompileShaders(OpenGLData *data, const char *VertexShaderSource, const char *FragmentShaderSource) 
+internal void ThreeDimensionalRendering(Shader *shader) 
 {
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &VertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    // Create model matrix
+    glm::mat4 model = glm::mat4(1.0f);
+    //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &FragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+    // Create view matrix
+    glm::mat4 view = glm::mat4(1.0f);
+    // note that we're translating the scene in the reverse direction
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
-    // Link shaders
-    data->shaderProgram = glCreateProgram();
-    glAttachShader(data->shaderProgram, vertexShader);
-    glAttachShader(data->shaderProgram, fragmentShader);
-    glLinkProgram(data->shaderProgram);
+    // Create projection matrix
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-    glUseProgram(data->shaderProgram);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-}
+    unsigned int modelLoc = glGetUniformLocation(shader->ID, "model");
+    unsigned int viewLoc  = glGetUniformLocation(shader->ID, "view");
 
-//-------------------------------------------------------------------------------------------------------------
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
 
-internal void AlterFragmentShader(OpenGLData *data, const char *FragmentShaderSource) 
-{
-    int vertexColorLocation = glGetUniformLocation(data->shaderProgram, "ourColor");
+    shader->setMat4("projection", projection);
 
-    if (vertexColorLocation != -1) 
-    {
-        float greenValue = (sin(ProgramElapsedTime) / 2) + 0.5;
-        glUseProgram(data->shaderProgram);
-        glUniform4f(vertexColorLocation, 0, greenValue, 0, 1);
-    }
+    
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -531,7 +545,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
     Win32LoadXInput();
     WNDCLASS WindowClass = {};
-    //ResizeDIBSection(&BackBuffer, 1280, 720);
     
     WindowClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     WindowClass.lpfnWndProc = WindowProc;
@@ -563,13 +576,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
             OpenGLData data;
-            Shader shader("../data/shaders/ColorTriangle.vert", "../data/shaders/ColorTriangle.frag");
-            //OpenGLCompileShaders(&data, vertexShaderSourceWithColor, fragShaderForColorVertex);
-            OpenGLVertexArrayObject(&data, Vertices_With_Color, sizeof(Vertices_With_Color));
-            //OpenGLElementBufferObject(&data);
-
-            int XOffset = 0;
-            int YOffset = 0;
+            Texture texture("../data/textures/darwin.jpg");
+            Shader shader("../data/shaders/3D.vert", "../data/shaders/3D.frag");
+            OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
+            //OpenGLElementBufferObject(&data, Rectangle_With_Texture, sizeof(Rectangle_With_Texture), Indices, sizeof(Indices));
+            glEnable(GL_DEPTH_TEST);
             Running = true;
             while (Running) 
             {
@@ -624,15 +635,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 }
 
                 glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 
-                //glUseProgram(data.shaderProgram);
+                // bind texture
+                glActiveTexture(GL_TEXTURE0);
+                texture.use();
+
+                // activate shader
                 shader.use();
+
+                // 3D projection
+                ThreeDimensionalRendering(&shader);
+                
                 glBindVertexArray(data.VAO);
                 // Draw a triangle from the vertices
-                glDrawArrays(GL_TRIANGLES, 0, 3);
-
-                //AlterFragmentShader(&data, uniformFragmentShaderSource);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -641,14 +658,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                 // Swap the front and back buffers
                 SwapBuffers(DeviceContext);
-
-                //WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
-                
-                //RenderWeirdGradient(&BackBuffer, XOffset, YOffset);
-                //Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
-                
-                //XOffset++;
-                //YOffset++;
 
                 QueryPerformanceCounter(&end);
                 ProgramElapsedTime += (double) (end.QuadPart - start.QuadPart) / frequency.QuadPart;
