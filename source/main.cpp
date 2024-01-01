@@ -132,6 +132,26 @@ float Cube_Vertices[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
+// world space positions of our cubes
+glm::vec3 cubePositions[] = {
+    glm::vec3( 0.0f,  0.0f,  0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3( 1.3f, -2.0f, -2.5f),
+    glm::vec3( 1.5f,  2.0f, -2.5f),
+    glm::vec3( 1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f)
+};
+
+global_variable float CameraPositionZ = -3.0f;
+global_variable float CameraPositionX = 0.0f;
+
+global_variable glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+global_variable glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+global_variable glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 struct OpenGLData 
 {
@@ -271,49 +291,58 @@ internal void OpenGLElementBufferObject(OpenGLData *data, float *VerticesInput, 
 internal void ThreeDimensionalRendering(Shader *shader) 
 {
     // Create model matrix
-    glm::mat4 model = glm::mat4(1.0f);
-    //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+    for (unsigned int i = 0; i < 10; i++) 
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[i]);
+        float angle = 20.0f * i;
+        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        shader->setMat4("model", model);
+    }
+    
+    //model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+    float camX = sin(ProgramElapsedTime) * 10.0f;
+    float camZ = cos(ProgramElapsedTime) * 10.0f;
 
     // Create view matrix
     glm::mat4 view = glm::mat4(1.0f);
-    // note that we're translating the scene in the reverse direction
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    // The LookAt function requires a position, target and up vector respectively
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    //view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Create projection matrix
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-    unsigned int modelLoc = glGetUniformLocation(shader->ID, "model");
-    unsigned int viewLoc  = glGetUniformLocation(shader->ID, "view");
-
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-
+    shader->setMat4("view", view);
     shader->setMat4("projection", projection);
-
-    
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
 internal void HandleKeyboardInputs(WPARAM VKCode) 
 {
+    const float cameraSpeed = 0.05f; // adjust accordingly
     if (VKCode == 0x57) 
     {
         // W Key
+        cameraPos += cameraSpeed * cameraFront;
     }
     else if (VKCode == 0x41) 
     {
         // A Key
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
     else if (VKCode == 	0x53) 
     {
         // S Key
+        cameraPos -= cameraSpeed * cameraFront;
     }
     else if (VKCode == 0x44) 
     {
         // D Key
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
     else if (VKCode == 0x51) 
     {
@@ -498,7 +527,7 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             break;
         case WM_KEYDOWN:
         {
-            
+            HandleKeyboardInputs(wParam);
         }
             break;
         case WM_KEYUP:
@@ -512,7 +541,7 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             bool IsDown = ((lParam & (1 << 31)) == 0);
             if (WasDown != IsDown) 
             {
-                HandleKeyboardInputs(wParam);
+                //HandleKeyboardInputs(wParam);
             }
         }
             break;
