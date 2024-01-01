@@ -1,4 +1,4 @@
-# Windows-Graphics-Rendering
+# OpenGL Graphics Engine
 Playing around with graphics rendering using the Windows API and OpenGL.
 
 WIN32 STUFF IS THANKS TO MOLLY ROCKET'S HANDMADE HERO WEB SERIES AT https://handmadehero.org/ 
