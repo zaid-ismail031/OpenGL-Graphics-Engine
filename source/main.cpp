@@ -34,6 +34,8 @@ struct OffScreenBuffer
 global_variable bool Running;
 global_variable OffScreenBuffer BackBuffer;
 global_variable double ProgramElapsedTime;
+global_variable bool mouseCaptured;
+
 
 struct WindowDimensions
 {
@@ -319,7 +321,7 @@ internal void ThreeDimensionalRendering(Shader *shader)
 
 internal void HandleKeyboardInputs(WPARAM VKCode) 
 {
-    const float cameraSpeed = 0.05f; // adjust accordingly
+    const float cameraSpeed = 0.1f; // adjust accordingly
     if (VKCode == 0x57) 
     {
         // W Key
@@ -351,18 +353,68 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
     else if (VKCode == VK_UP) 
     {
         // Up Arrow Key
+        pitch += 10;
+
+        // make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (pitch > 89)
+            pitch = 89;
+        if (pitch < -89)
+            pitch = -89;
+
+        float floatYaw = (float)yaw;
+        float floatPitch = (float)pitch;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        front.y = sin(glm::radians(floatPitch));
+        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_DOWN) 
     {
         // Down Arrow Key
+        pitch -= 10;
+
+        // make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (pitch > 89)
+            pitch = 89;
+        if (pitch < -89)
+            pitch = -89;
+
+        float floatYaw = (float)yaw;
+        float floatPitch = (float)pitch;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        front.y = sin(glm::radians(floatPitch));
+        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_LEFT) 
     {
         // Left Arrow Key
+        yaw -= 10;
+        float floatYaw = (float)yaw;
+        float floatPitch = (float)pitch;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        front.y = sin(glm::radians(floatPitch));
+        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_RIGHT) 
     {
         // Right Arrow Key
+        yaw += 10;
+        float floatYaw = (float)yaw;
+        float floatPitch = (float)pitch;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        front.y = sin(glm::radians(floatPitch));
+        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_ESCAPE) 
     {
@@ -466,10 +518,18 @@ internal void MouseLook(HWND *hwnd, short *lastX, short *lastY)
     long xPos = cursorPosition.x;
     long yPos = cursorPosition.y;
 
-    const float sensitivity = 0.1f;
+    if (fabs(xPos - *lastX) < 0.1 || fabs(yPos - *lastY) < 0.1) 
+    {
+        return;
+    }
 
-    short xOffset = (xPos - *lastX) * sensitivity;
-    short yOffset = (*lastY - yPos) * sensitivity;
+    short originalX = 400;
+    short originalY = 300;
+
+    const float sensitivity = 0.01f;
+
+    short xOffset = (xPos - originalX) * sensitivity;
+    short yOffset = (originalY - yPos) * sensitivity;
 
     *lastX = (short)xPos;
     *lastY = (short)yPos;
@@ -546,7 +606,12 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             break;
         case WM_LBUTTONDOWN:
         {
-            SetCapture(hwnd); // Capture mouse
+            //mouseCaptured = SetCapture(hwnd); // Capture mouse
+        }
+            break;
+        case WM_RBUTTONDOWN:
+        {
+            //mouseCaptured = false; // Capture mouse
         }
             break;
         case WM_MOUSEMOVE:
@@ -675,8 +740,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Running = true;
             while (Running) 
             {
-                MouseLook(&WindowHandle, &lastMouseX, &lastMouseY);
-
+                //if (mouseCaptured) {
+                //    MouseLook(&WindowHandle, &lastMouseX, &lastMouseY);
+                //}
+                
                 LARGE_INTEGER frequency, start, end;
 
                 QueryPerformanceFrequency(&frequency);
