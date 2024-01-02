@@ -1,4 +1,7 @@
 #include <windows.h>
+#include <windowsx.h>
+#include <winuser.h>
+#include <thread>
 #include <math.h>
 #include <stdint.h>
 #include <xinput.h>
@@ -153,6 +156,9 @@ global_variable glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 global_variable glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 global_variable glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+global_variable short yaw = -90;
+global_variable short pitch = 0;
+
 struct OpenGLData 
 {
     unsigned int EBO;
@@ -290,16 +296,6 @@ internal void OpenGLElementBufferObject(OpenGLData *data, float *VerticesInput, 
 
 internal void ThreeDimensionalRendering(Shader *shader) 
 {
-    // Create model matrix
-    for (unsigned int i = 0; i < 10; i++) 
-    {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[i]);
-        float angle = 20.0f * i;
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-        shader->setMat4("model", model);
-    }
-    
     //model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
     float camX = sin(ProgramElapsedTime) * 10.0f;
@@ -451,6 +447,54 @@ internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int 
 
 //-------------------------------------------------------------------------------------------------------------
 
+internal void MouseLook(HWND *hwnd, short *lastX, short *lastY) 
+{
+    TRACKMOUSEEVENT MouseEvent;
+
+    MouseEvent.cbSize = sizeof(TRACKMOUSEEVENT);
+    MouseEvent.dwFlags = TME_HOVER;
+    MouseEvent.hwndTrack = *hwnd;
+    MouseEvent.dwHoverTime = HOVER_DEFAULT;
+
+    bool IsTrackingMouse = TrackMouseEvent(&MouseEvent);
+
+    POINT cursorPosition;
+    GetCursorPos(&cursorPosition);
+
+    //short xPos = GET_X_LPARAM(lParam); 
+    //short yPos = GET_Y_LPARAM(lParam);
+    long xPos = cursorPosition.x;
+    long yPos = cursorPosition.y;
+
+    const float sensitivity = 0.1f;
+
+    short xOffset = (xPos - *lastX) * sensitivity;
+    short yOffset = (*lastY - yPos) * sensitivity;
+
+    *lastX = (short)xPos;
+    *lastY = (short)yPos;
+
+    yaw += xOffset;
+    pitch += yOffset;
+
+    // make sure that when pitch is out of bounds, screen doesn't get flipped
+    if (pitch > 89)
+        pitch = 89;
+    if (pitch < -89)
+        pitch = -89;
+    
+    float floatYaw = (float)yaw;
+    float floatPitch = (float)pitch;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+    front.y = sin(glm::radians(floatPitch));
+    front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
+    cameraFront = glm::normalize(front);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
 internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 {
     LRESULT Result = 0;
@@ -498,6 +542,21 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
                 return -1;
             }
             //MessageBoxA(0,(char*)glGetString(GL_VERSION), "OPENGL VERSION",0);
+        }
+            break;
+        case WM_LBUTTONDOWN:
+        {
+            SetCapture(hwnd); // Capture mouse
+        }
+            break;
+        case WM_MOUSEMOVE:
+        {
+
+        }
+            break;
+        case WM_MOUSEHOVER:
+        {
+            
         }
             break;
         case WM_DESTROY:
@@ -599,8 +658,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         if (WindowHandle != NULL) 
         {
+            // Initialize last MOUSE X and Y to centre of screen since we are rendering at 800x600
+            short lastMouseX = 400; 
+            short lastMouseY = 300;
             HDC DeviceContext = GetDC(WindowHandle);
-            
+
             WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
@@ -613,6 +675,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Running = true;
             while (Running) 
             {
+                MouseLook(&WindowHandle, &lastMouseX, &lastMouseY);
+
                 LARGE_INTEGER frequency, start, end;
 
                 QueryPerformanceFrequency(&frequency);
@@ -678,7 +742,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 
                 glBindVertexArray(data.VAO);
                 // Draw a triangle from the vertices
-                glDrawArrays(GL_TRIANGLES, 0, 36);
+                // Create model matrix
+                for (unsigned int i = 0; i < 10; i++) 
+                {
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, cubePositions[i]);
+                    float angle = 20.0f * i;
+                    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+                    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+                    shader.setMat4("model", model);
+
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                }
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
