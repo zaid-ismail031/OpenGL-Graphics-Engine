@@ -9,6 +9,7 @@
 #include "shaders.h"
 #include "text.h"
 #include "textures.h"
+#include "globjectloader.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -734,7 +735,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLData data;
             Texture texture("../data/textures/darwin.jpg");
             Shader shader("../data/shaders/3D.vert", "../data/shaders/3D.frag");
-            OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
+            //OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
+            ObjectLoader object("../data/models/eyeball/eyeball.obj");
+            object.createVertexArrayObject();
             //OpenGLElementBufferObject(&data, Rectangle_With_Texture, sizeof(Rectangle_With_Texture), Indices, sizeof(Indices));
             glEnable(GL_DEPTH_TEST);
             Running = true;
@@ -807,20 +810,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // 3D projection
                 ThreeDimensionalRendering(&shader);
                 
-                glBindVertexArray(data.VAO);
+                glBindVertexArray(object.VAO);
                 // Draw a triangle from the vertices
                 // Create model matrix
-                for (unsigned int i = 0; i < 10; i++) 
-                {
-                    glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, cubePositions[i]);
-                    float angle = 20.0f * i;
-                    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-                    shader.setMat4("model", model);
+                //for (unsigned int i = 0; i < 10; i++) 
+                //{
+                //    glm::mat4 model = glm::mat4(1.0f);
+                //    model = glm::translate(model, cubePositions[i]);
+                //    float angle = 20.0f * i;
+                //    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+                //    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+                //    shader.setMat4("model", model);
 
-                    glDrawArrays(GL_TRIANGLES, 0, 36);
-                }
+                //    glDrawArrays(GL_TRIANGLES, 0, 36);
+                //}
+
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, cubePositions[0]);
+                float angle = 20.0f;
+                //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+                model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+                shader.setMat4("model", model);
+
+                glDrawArrays(GL_TRIANGLES, 0, 56064);
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -835,9 +847,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
 
             ReleaseDC(WindowHandle, DeviceContext);
-            glDeleteVertexArrays(1, &data.VAO);
-            glDeleteBuffers(1, &data.VBO);
-            glDeleteProgram(data.shaderProgram);
+            glDeleteVertexArrays(1, &object.VAO);
+            glDeleteBuffers(1, &object.VBO);
+            glDeleteProgram(shader.ID);
         }
         else 
         {
