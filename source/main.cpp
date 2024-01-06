@@ -734,7 +734,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             OpenGLData data;
             Texture texture("../data/textures/darwin.jpg");
-            Shader shader("../data/shaders/3D.vert", "../data/shaders/3D.frag");
+            Shader shader("../data/shaders/eyeball.vert", "../data/shaders/eyeball.frag");
             //OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
             object.createVertexArrayObject();
@@ -801,8 +801,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 
                 // bind texture
-                glActiveTexture(GL_TEXTURE0);
-                texture.use();
+                //glActiveTexture(GL_TEXTURE0);
+                //texture.use();
 
                 // activate shader
                 shader.use();
@@ -832,7 +832,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                 shader.setMat4("model", model);
 
-                glDrawArrays(GL_TRIANGLES, 0, 56064);
+                glDrawArrays(GL_TRIANGLES, 0, object.getVertexCount(0));
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
