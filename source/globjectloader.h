@@ -11,7 +11,7 @@ class ObjectLoader
         unsigned int VAO;
         unsigned int VBO;
         ObjectLoader(const char* objectPath);
-        int getVertexCount(int Mesh);
+        int getVertexCount();
         void createVertexArrayObject();
 };
 
