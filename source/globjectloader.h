@@ -1,6 +1,7 @@
 #ifndef GLOBJECTLOADER_H
 #define GLOBJECTLOADER_H
 
+#include <windows.h>
 #include <OBJ_Loader.h>
 #include <glad/glad.h>
 

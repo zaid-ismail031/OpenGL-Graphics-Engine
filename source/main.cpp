@@ -314,6 +314,15 @@ internal void ThreeDimensionalRendering(Shader *shader)
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
+    // Lighting calcs
+    glm::vec3 objectColor(1.0f, 0.5f, 0.31f);
+    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+    shader->setVec3("objectColor", objectColor);
+    shader->setVec3("lightColor", lightColor);
+    shader->setVec3("lightPos", lightPos);
+
     shader->setMat4("view", view);
     shader->setMat4("projection", projection);
 }
@@ -733,7 +742,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
             OpenGLData data;
-            Texture texture("../data/models/eyeball/textures/REF1.jpg");
+            //Texture texture("../data/models/eyeball/textures/REF 1.jpg");
             Shader shader("../data/shaders/eyeball.vert", "../data/shaders/eyeball.frag");
             //OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
@@ -801,8 +810,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 
                 // bind texture
-                glActiveTexture(GL_TEXTURE0);
-                texture.use();
+                //glActiveTexture(GL_TEXTURE0);
+                //texture.use();
 
                 // activate shader
                 shader.use();
@@ -813,26 +822,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glBindVertexArray(object.VAO);
                 // Draw a triangle from the vertices
                 // Create model matrix
-                //for (unsigned int i = 0; i < 10; i++) 
-                //{
-                //    glm::mat4 model = glm::mat4(1.0f);
-                //    model = glm::translate(model, cubePositions[i]);
-                //    float angle = 20.0f * i;
-                //    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                //    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-                //    shader.setMat4("model", model);
+                for (unsigned int i = 0; i < 10; i++) 
+                {
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, cubePositions[i]);
+                    float angle = 20.0f * i;
+                    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+                    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+                    shader.setMat4("model", model);
 
-                //    glDrawArrays(GL_TRIANGLES, 0, 36);
-                //}
+                    glDrawArrays(GL_TRIANGLES, 0, object.getVertexCount());
+                }
 
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, cubePositions[0]);
-                float angle = 20.0f;
-                //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-                shader.setMat4("model", model);
+                //glm::mat4 model = glm::mat4(1.0f);
+                //model = glm::translate(model, cubePositions[0]);
+                //float angle = 20.0f;
+                ////model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+                //model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+                //shader.setMat4("model", model);
 
-                glDrawArrays(GL_TRIANGLES, 0, object.getVertexCount());
+                //glDrawArrays(GL_TRIANGLES, 0, object.getVertexCount());
 
                 // Draw a rectangle from the vertices
                 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
