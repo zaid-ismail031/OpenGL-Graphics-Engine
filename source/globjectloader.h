@@ -11,9 +11,12 @@ class ObjectLoader
         objl::Loader loader;
         unsigned int VAO;
         unsigned int VBO;
+        unsigned int EBO;
         ObjectLoader(const char* objectPath);
         int getVertexCount();
+        int getIndexCount();
         void createVertexArrayObject();
+        void createElementBufferObject();
 };
 
 #endif
