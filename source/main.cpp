@@ -748,7 +748,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Shader shader("../data/shaders/eyeball.vert", "../data/shaders/eyeball.frag");
             //OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
-            object.createElementBufferObject();
+            object.loadAllMeshes();
             //OpenGLElementBufferObject(&data, Rectangle_With_Texture, sizeof(Rectangle_With_Texture), Indices, sizeof(Indices));
             glEnable(GL_DEPTH_TEST);
             Running = true;
@@ -812,12 +812,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 
                 // bind texture
-                //glActiveTexture(GL_TEXTURE0);
-                //texture1.use();
-                //glActiveTexture(GL_TEXTURE1);
-                //texture2.use();
-                //glActiveTexture(GL_TEXTURE2);
-                //texture3.use();
+                glActiveTexture(GL_TEXTURE0);
+                texture1.use();
+                glActiveTexture(GL_TEXTURE1);
+                texture2.use();
+                glActiveTexture(GL_TEXTURE2);
+                texture3.use();
 
                 // activate shader
                 shader.use();
@@ -825,35 +825,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // 3D projection
                 ThreeDimensionalRendering(&shader);
                 
-                glBindVertexArray(object.VAO);
-                // Draw a triangle from the vertices
-                // Create model matrix
-                for (unsigned int i = 0; i < 10; i++) 
+                for (int i = 0; i < object.bufferVector.size(); i++) 
                 {
+                    glBindVertexArray(object.bufferVector[i].VAO);
                     glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, cubePositions[i]);
-                    float angle = 20.0f * i;
+                    model = glm::translate(model, cubePositions[0]);
+                    float angle = 20.0f;
                     //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
                     model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                     shader.setMat4("model", model);
-
-                    //glDrawArrays(GL_TRIANGLES, 0, object.getVertexCount());
-                    glDrawElements(GL_TRIANGLES, object.getIndexCount(), GL_UNSIGNED_INT, 0);
-
+                    glDrawElements(GL_TRIANGLES, object.bufferVector[i].indexCount, GL_UNSIGNED_INT, 0);
                 }
-
-                //glm::mat4 model = glm::mat4(1.0f);
-                //model = glm::translate(model, cubePositions[0]);
-                //float angle = 20.0f;
-                ////model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                //model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-                //shader.setMat4("model", model);
-
-                //glDrawArrays(GL_TRIANGLES, 0, object.getVertexCount());
-
-                // Draw a rectangle from the vertices
-                //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+                
                 glBindVertexArray(0);
 
                 // Swap the front and back buffers
