@@ -61,7 +61,7 @@ class ObjectLoader
         void createVertexArrayObject();
         void createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffers);
         void loadAllMeshes();
-        std::vector<MaterialProperties> loadMaterial(int index);
+        void loadMaterial(int index, std::vector<MaterialProperties> *materialProps);
 };
 
 #endif

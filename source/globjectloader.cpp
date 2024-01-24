@@ -169,13 +169,11 @@ void ObjectLoader::loadAllMeshes()
 
 //-------------------------------------------------------------------------------------------------------------
 
-std::vector<MaterialProperties> ObjectLoader::loadMaterial(int index) 
+void ObjectLoader::loadMaterial(int index, std::vector<MaterialProperties> *materialProps) 
 {
     objl::Material material = this->loader.LoadedMeshes[index].MeshMaterial;
 
-    std::vector<MaterialProperties> materialProps;
-
-    materialProps.push_back(MaterialProperties{
+    materialProps->push_back(MaterialProperties{
         .name = material.name,
         .Ka = {material.Ka.X, material.Ka.Y, material.Ka.Z},
         .Kd = {material.Kd.X, material.Kd.Y, material.Kd.Z},
@@ -191,8 +189,6 @@ std::vector<MaterialProperties> ObjectLoader::loadMaterial(int index)
         .map_d = material.map_d,
         .map_bump = material.map_bump
     });
-
-    return materialProps;
 }
 
 //-------------------------------------------------------------------------------------------------------------
