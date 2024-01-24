@@ -1,10 +1,14 @@
 #include "globjectloader.h"
 #include <vector>
 
+//-------------------------------------------------------------------------------------------------------------
+
 ObjectLoader::ObjectLoader(const char* objectPath) 
 {
     this->loader.LoadFile(objectPath);
 }
+
+//-------------------------------------------------------------------------------------------------------------
 
 int ObjectLoader::getVertexCount() 
 {
@@ -18,6 +22,7 @@ int ObjectLoader::getVertexCount()
     return vertexCount;
 }
 
+//-------------------------------------------------------------------------------------------------------------
 
 int ObjectLoader::getIndexCount() 
 {
@@ -31,11 +36,14 @@ int ObjectLoader::getIndexCount()
     return indexCount;
 }
 
+//-------------------------------------------------------------------------------------------------------------
 
 int ObjectLoader::getMeshCount() 
 {
     return this->loader.LoadedMeshes.size();
 }
+
+//-------------------------------------------------------------------------------------------------------------
 
 void ObjectLoader::createVertexArrayObject() 
 {
@@ -88,6 +96,7 @@ void ObjectLoader::createVertexArrayObject()
     glEnableVertexAttribArray(2);
 }
 
+//-------------------------------------------------------------------------------------------------------------
 
 void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffers) 
 {
@@ -146,6 +155,7 @@ void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffe
     glEnableVertexAttribArray(2);
 }
 
+//-------------------------------------------------------------------------------------------------------------
 
 void ObjectLoader::loadAllMeshes() 
 {
@@ -155,4 +165,34 @@ void ObjectLoader::loadAllMeshes()
         createElementBufferObject(this->loader.LoadedMeshes[i], &buffer);
         bufferVector.push_back(buffer);
     }
-} 
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+std::vector<MaterialProperties> ObjectLoader::loadMaterial(int index) 
+{
+    objl::Material material = this->loader.LoadedMeshes[index].MeshMaterial;
+
+    std::vector<MaterialProperties> materialProps;
+
+    materialProps.push_back(MaterialProperties{
+        .name = material.name,
+        .Ka = {material.Ka.X, material.Ka.Y, material.Ka.Z},
+        .Kd = {material.Kd.X, material.Kd.Y, material.Kd.Z},
+        .Ks = {material.Ks.X, material.Ks.Y, material.Ks.Z},
+        .Ns = material.Ns,
+        .Ni = material.Ni,
+        .d = material.d,
+        .illum = material.illum,
+        .map_Ka = material.map_Ka,
+        .map_Kd = material.map_Kd,
+        .map_Ks = material.map_Ks,
+        .map_Ns = material.map_Ns,
+        .map_d = material.map_d,
+        .map_bump = material.map_bump
+    });
+
+    return materialProps;
+}
+
+//-------------------------------------------------------------------------------------------------------------
