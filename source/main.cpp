@@ -742,13 +742,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
             OpenGLData data;
-            Texture texture1("../data/models/eyeball/textures/REF 1.jpg");
-            Texture texture2("../data/models/eyeball/textures/Eye_D.jpg");
-            Texture texture3("../data/models/eyeball/textures/Eye_N.jpg");
-            Shader shader("../data/shaders/eyeball.vert", "../data/shaders/eyeball.frag");
+            Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
+            Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
+            Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
+            Shader shader("../data/shaders/material.vert", "../data/shaders/material.frag");
             //OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
             object.loadAllMeshes();
+            
             //OpenGLElementBufferObject(&data, Rectangle_With_Texture, sizeof(Rectangle_With_Texture), Indices, sizeof(Indices));
             glEnable(GL_DEPTH_TEST);
             Running = true;
@@ -813,11 +814,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 
                 // bind texture
                 glActiveTexture(GL_TEXTURE0);
-                texture1.use();
+                diffuseTexture.use();
                 glActiveTexture(GL_TEXTURE1);
-                texture2.use();
+                specularTexture.use();
                 glActiveTexture(GL_TEXTURE2);
-                texture3.use();
+                bumpTexture.use();
 
                 // activate shader
                 shader.use();
@@ -827,6 +828,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 
                 for (int i = 0; i < object.bufferVector.size(); i++) 
                 {
+                    std::vector<MaterialProperties> material;
+                    object.loadMaterial(i, &material);
+
+                    glm::vec3 ambientColor(material[0].Ka.r, material[0].Ka.g, material[0].Ka.b);
+                    glm::vec3 diffuseColor(material[0].Kd.r, material[0].Kd.g, material[0].Kd.b);
+                    glm::vec3 specularColor(material[0].Ks.r, material[0].Ks.g, material[0].Ks.b);
+
+                    shader.setVec3("material.Ka", ambientColor);
+                    shader.setVec3("material.Kd", diffuseColor);
+                    shader.setVec3("material.Ks", specularColor);
+
+                    shader.setFloat("material.Ns", material[0].Ns);
+                    shader.setInt("map_Ka", 0);
+                    shader.setInt("map_Kd", 1);
+                    shader.setInt("map_Ks", 2);
+
                     glBindVertexArray(object.bufferVector[i].VAO);
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, cubePositions[0]);
