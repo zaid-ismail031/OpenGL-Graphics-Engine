@@ -13,7 +13,7 @@ struct Material
 
 in vec3 FragPos;   // Fragment position
 in vec3 Normal;    // Fragment normal
-in vec2 TexCoords; // Texture coordinates
+in vec2 TexCoord; // Texture coordinates
 
 out vec4 FragColor;
 
@@ -25,19 +25,19 @@ uniform vec3 lightColor;     // Light color
 void main()
 {
     // Ambient
-    vec3 ambient = material.Ka * texture(material.map_Ka, TexCoords).rgb;
+    vec3 ambient = material.Ka * texture(material.map_Ka, TexCoord).rgb;
 
     // Diffuse 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = material.Kd * diff * texture(material.map_Kd, TexCoords).rgb;
+    vec3 diffuse = material.Kd * diff * texture(material.map_Kd, TexCoord).rgb;
 
     // Specular
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Ns);
-    vec3 specular = material.Ks * spec * texture(material.map_Ks, TexCoords).rgb;
+    vec3 specular = material.Ks * spec * texture(material.map_Ks, TexCoord).rgb;
 
     vec3 result = lightColor * (ambient + diffuse + specular);
     FragColor = vec4(result, 1.0);

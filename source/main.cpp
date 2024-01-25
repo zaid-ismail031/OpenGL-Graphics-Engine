@@ -746,19 +746,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
             Shader shader("../data/shaders/material.vert", "../data/shaders/material.frag");
-            //OpenGLVertexArrayObject(&data, Cube_Vertices, sizeof(Cube_Vertices));
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
             object.loadAllMeshes();
+
+            for (int i = 0; i < object.bufferVector.size(); i++) 
+            {
+                std::vector<MaterialProperties> material;
+                object.loadMaterial(i, &material);
+
+                glm::vec3 ambientColor(material[0].Ka.r, material[0].Ka.g, material[0].Ka.b);
+                glm::vec3 diffuseColor(material[0].Kd.r, material[0].Kd.g, material[0].Kd.b);
+                glm::vec3 specularColor(material[0].Ks.r, material[0].Ks.g, material[0].Ks.b);
+
+                shader.setVec3("material.Ka", ambientColor);
+                shader.setVec3("material.Kd", diffuseColor);
+                shader.setVec3("material.Ks", specularColor);
+
+                shader.setFloat("material.Ns", material[0].Ns);
+                shader.setInt("map_Ka", 0);
+                shader.setInt("map_Kd", 1);
+                shader.setInt("map_Ks", 2);
+            }
             
-            //OpenGLElementBufferObject(&data, Rectangle_With_Texture, sizeof(Rectangle_With_Texture), Indices, sizeof(Indices));
             glEnable(GL_DEPTH_TEST);
             Running = true;
             while (Running) 
             {
-                //if (mouseCaptured) {
-                //    MouseLook(&WindowHandle, &lastMouseX, &lastMouseY);
-                //}
-                
                 LARGE_INTEGER frequency, start, end;
 
                 QueryPerformanceFrequency(&frequency);
