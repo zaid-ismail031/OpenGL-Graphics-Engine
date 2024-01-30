@@ -12,3 +12,6 @@ OPENGL STUFF IS THANKS TO THE BOOK "LEARN OPENGL - GRAPHICS PROGRAMMING" BY JOEY
 * Open Windows Command Prompt.
 * From the Command Prompt, run vcvarsall.bat in your Visual Studio install directory to initialize Visual Studio C++ compiler. If it is installed in the default C:\ProgramFiles directory, running init.bat should work.
 * In the same Command Prompt window, run build.bat to compile.
+
+## Demo
+https://www.youtube.com/watch?v=z6Drqm3QBYM
