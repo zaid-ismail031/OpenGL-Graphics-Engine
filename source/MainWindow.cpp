@@ -6,10 +6,10 @@
 #include <stdint.h>
 #include <xinput.h>
 #include <glad/glad.h>
-#include "shaders.h"
-#include "text.h"
-#include "textures.h"
-#include "globjectloader.h"
+#include "Shaders.h"
+#include "Text.h"
+#include "Textures.h"
+#include "ObjectLoader.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -44,100 +44,6 @@ struct WindowDimensions
     int Height;
 };
 
-global_variable float Vertices[] = 
-{
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
-};
-
-global_variable float Rect_Vertices_Overlap[] 
-{
-    // first triangle
-    0.5f, 0.5f, 0.0f, // top right
-    0.5f, -0.5f, 0.0f, // bottom right
-    -0.5f, 0.5f, 0.0f, // top left
-    // second triangle
-    0.5f, -0.5f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, // bottom left
-    -0.5f, 0.5f, 0.0f // top left
-};
-
-global_variable float Rect_Vertices[] = 
-{
-    0.5f, 0.5f, 0.0f, // top right
-    0.5f, -0.5f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, // bottom left
-    -0.5f, 0.5f, 0.0f // top left
-};
-
-global_variable unsigned int Indices[] = 
-{   // note that we start from 0!
-    0, 1, 3, // first triangle
-    1, 2, 3 // second triangle
-};
-
-global_variable float Vertices_With_Color[] =
-{
-    // positions       // colors
-    0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-    0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f // top
-};
-
-global_variable float Rectangle_With_Texture[] =
-{
-    // positions       // colors    // texture coords
-    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-    -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
-};
-
-float Cube_Vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
-
 // world space positions of our cubes
 glm::vec3 cubePositions[] = {
     glm::vec3( 0.0f,  0.0f,  0.0f),
@@ -162,13 +68,6 @@ global_variable glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 global_variable short yaw = -90;
 global_variable short pitch = 0;
 
-struct OpenGLData 
-{
-    unsigned int EBO;
-    unsigned int VBO;
-    unsigned int VAO;
-    unsigned int shaderProgram;
-};
 
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
 #define XINPUTSETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
@@ -242,58 +141,6 @@ internal void OpenGLFrameBufferSizeCallback(HWND Window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-//-------------------------------------------------------------------------------------------------------------
-
-internal void OpenGLVertexArrayObject(OpenGLData *data, float *VerticesInput, size_t VerticesSize) 
-{
-    // Vertex Buffer Object and Vertex Array Object
-    glGenVertexArrays(1, &data->VAO);
-    glGenBuffers(1, &data->VBO);
-
-    glBindVertexArray(data->VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, VerticesSize, (const void *)VerticesInput, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);s
-}
-
-//-------------------------------------------------------------------------------------------------------------
-
-internal void OpenGLElementBufferObject(OpenGLData *data, float *VerticesInput, size_t VerticesSize, unsigned int *IndicesInput, size_t IndicesSize) 
-{
-    // Vertex Buffer Object and Vertex Array Object
-    glGenVertexArrays(1, &data->VAO);
-    glGenBuffers(1, &data->VBO);
-
-    glBindVertexArray(data->VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, VerticesSize, (const void *)VerticesInput, GL_STATIC_DRAW);
-
-    // Element Buffer Object
-    glGenBuffers(1, &data->EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,  IndicesSize, (const void *)IndicesInput, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-}
 
 //-------------------------------------------------------------------------------------------------------------
 
@@ -363,7 +210,7 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
     else if (VKCode == VK_UP) 
     {
         // Up Arrow Key
-        pitch += 10;
+        pitch += 5;
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (pitch > 89)
@@ -383,7 +230,7 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
     else if (VKCode == VK_DOWN) 
     {
         // Down Arrow Key
-        pitch -= 10;
+        pitch -= 5;
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (pitch > 89)
@@ -403,7 +250,7 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
     else if (VKCode == VK_LEFT) 
     {
         // Left Arrow Key
-        yaw -= 10;
+        yaw -= 5;
         float floatYaw = (float)yaw;
         float floatPitch = (float)pitch;
 
@@ -416,7 +263,7 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
     else if (VKCode == VK_RIGHT) 
     {
         // Right Arrow Key
-        yaw += 10;
+        yaw += 5;
         float floatYaw = (float)yaw;
         float floatPitch = (float)pitch;
 
@@ -741,8 +588,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
-            OpenGLData data;
-
 #ifdef VS_BUILD
             Texture diffuseTexture("data/models/eyeball/textures/Eye_D.jpg");
             Texture specularTexture("data/models/eyeball/textures/Eye_D.jpg");
@@ -871,7 +716,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, cubePositions[0]);
                     float angle = 20.0f;
-                    //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
                     model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                     shader.setMat4("model", model);
                     glDrawElements(GL_TRIANGLES, object.bufferVector[i].indexCount, GL_UNSIGNED_INT, 0);
