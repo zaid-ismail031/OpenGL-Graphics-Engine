@@ -6,6 +6,9 @@
 ObjectLoader::ObjectLoader(const char* objectPath) 
 {
     this->loader.LoadFile(objectPath);
+    this->VAO = 0;
+    this->VBO = 0;
+    this->EBO = 0;
 }
 
 //-------------------------------------------------------------------------------------------------------------

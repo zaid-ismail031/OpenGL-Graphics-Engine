@@ -165,6 +165,8 @@ namespace objl
 		Vector3 Kd;
 		// Specular Color
 		Vector3 Ks;
+		// Emissive Color
+		Vector3 Ke;
 		// Specular Exponent
 		float Ns;
 		// Optical Density
@@ -179,6 +181,8 @@ namespace objl
 		std::string map_Kd;
 		// Specular Texture Map
 		std::string map_Ks;
+		// Emissive Texture Map
+		std::string map_Ke;
 		// Specular Hightlight Map
 		std::string map_Ns;
 		// Alpha Texture Map
@@ -1098,6 +1102,19 @@ namespace objl
 					tempMaterial.Ks.Y = std::stof(temp[1]);
 					tempMaterial.Ks.Z = std::stof(temp[2]);
 				}
+				// Emissive Color
+				if (algorithm::firstToken(curline) == "Ke")
+				{
+					std::vector<std::string> temp;
+					algorithm::split(algorithm::tail(curline), temp, " ");
+
+					if (temp.size() != 3)
+						continue;
+
+					tempMaterial.Ke.X = std::stof(temp[0]);
+					tempMaterial.Ke.Y = std::stof(temp[1]);
+					tempMaterial.Ke.Z = std::stof(temp[2]);
+				}
 				// Specular Exponent
 				if (algorithm::firstToken(curline) == "Ns")
 				{
@@ -1130,6 +1147,11 @@ namespace objl
 				}
 				// Specular Texture Map
 				if (algorithm::firstToken(curline) == "map_Ks")
+				{
+					tempMaterial.map_Ks = algorithm::tail(curline);
+				}
+				// Emissive Texture Map
+				if (algorithm::firstToken(curline) == "map_Ke")
 				{
 					tempMaterial.map_Ks = algorithm::tail(curline);
 				}

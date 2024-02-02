@@ -149,7 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\glad.c" />
+    <ClCompile Include="source\Glad.c" />
     <ClCompile Include="source\ObjectLoader.cpp" />
     <ClCompile Include="source\MainWindow.cpp" />
     <ClCompile Include="source\Shaders.cpp" />

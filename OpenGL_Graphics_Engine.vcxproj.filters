@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\glad.c" />
+    <ClCompile Include="source\Glad.c" />
     <ClCompile Include="source\ObjectLoader.cpp" />
     <ClCompile Include="source\MainWindow.cpp" />
     <ClCompile Include="source\Shaders.cpp" />
