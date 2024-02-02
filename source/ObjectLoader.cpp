@@ -181,6 +181,7 @@ void ObjectLoader::loadMaterial(int index, std::vector<MaterialProperties> *mate
         .Ka = {material.Ka.X, material.Ka.Y, material.Ka.Z},
         .Kd = {material.Kd.X, material.Kd.Y, material.Kd.Z},
         .Ks = {material.Ks.X, material.Ks.Y, material.Ks.Z},
+        .Ke = {material.Ke.X, material.Ke.Y, material.Ke.Z},
         .Ns = material.Ns,
         .Ni = material.Ni,
         .d = material.d,
@@ -188,9 +189,11 @@ void ObjectLoader::loadMaterial(int index, std::vector<MaterialProperties> *mate
         .map_Ka = material.map_Ka,
         .map_Kd = material.map_Kd,
         .map_Ks = material.map_Ks,
+        .map_Ke = material.map_Ke,
         .map_Ns = material.map_Ns,
         .map_d = material.map_d,
-        .map_bump = material.map_bump
+        .map_bump = material.map_bump,
+        .refl = material.refl
     });
 }
 

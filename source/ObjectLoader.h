@@ -24,6 +24,8 @@ struct MaterialProperties
 	glm::vec3 Kd;
 	// Specular Color
 	glm::vec3 Ks;
+	// Emissive Color
+	glm::vec3 Ke;
 	// Specular Exponent
 	float Ns;
 	// Optical Density
@@ -38,12 +40,16 @@ struct MaterialProperties
 	std::string map_Kd;
 	// Specular Texture Map
 	std::string map_Ks;
+	// Emissive Texture Map
+	std::string map_Ke;
 	// Specular Hightlight Map
 	std::string map_Ns;
 	// Alpha Texture Map
 	std::string map_d;
 	// Bump Map
 	std::string map_bump;
+	// Reflection Map
+	std::string refl;
 };
 
 class ObjectLoader 

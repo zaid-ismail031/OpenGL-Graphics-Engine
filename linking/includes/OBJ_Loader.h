@@ -189,6 +189,8 @@ namespace objl
 		std::string map_d;
 		// Bump Map
 		std::string map_bump;
+		// Reflection Map
+		std::string refl;
 	};
 
 	// Structure: Mesh
@@ -1153,7 +1155,7 @@ namespace objl
 				// Emissive Texture Map
 				if (algorithm::firstToken(curline) == "map_Ke")
 				{
-					tempMaterial.map_Ks = algorithm::tail(curline);
+					tempMaterial.map_Ke = algorithm::tail(curline);
 				}
 				// Specular Hightlight Map
 				if (algorithm::firstToken(curline) == "map_Ns")
@@ -1169,6 +1171,11 @@ namespace objl
 				if (algorithm::firstToken(curline) == "map_Bump" || algorithm::firstToken(curline) == "map_bump" || algorithm::firstToken(curline) == "bump")
 				{
 					tempMaterial.map_bump = algorithm::tail(curline);
+				}
+				// Reflection Map
+				if (algorithm::firstToken(curline) == "refl")
+				{
+					tempMaterial.refl = algorithm::tail(curline);
 				}
 			}
 
