@@ -559,14 +559,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     WindowClass.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
     WindowClass.lpfnWndProc = WindowProc;
     WindowClass.hInstance = hInstance;
-    WindowClass.lpszClassName = "Windows App";
+    WindowClass.lpszClassName = "OpenGL Graphics Engine";
 
     if (RegisterClassA(&WindowClass)) 
     {
         HWND WindowHandle = CreateWindowExA(
             0,
             WindowClass.lpszClassName,
-            "Windows App",
+            "OpenGL Graphics Engine",
             WS_OVERLAPPEDWINDOW|WS_VISIBLE,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -592,8 +592,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture diffuseTexture("data/models/eyeball/textures/Eye_D.jpg");
             Texture specularTexture("data/models/eyeball/textures/Eye_D.jpg");
             Texture bumpTexture("data/models/eyeball/textures/Eye_N.jpg");
-            Shader shader("data/shaders/material.vert", "data/shaders/material.frag");
+            Texture emissiveTexture("data/models/eyeball/textures/Eye_D.jpg");
+
+            Shader shader("data/shaders/Eyeball.vert", "data/shaders/Eyeball.frag");
+
             ObjectLoader object("data/models/eyeball/eyeball.obj");
+
             object.loadAllMeshes();
 #else
             Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
@@ -603,29 +607,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
             object.loadAllMeshes();
 #endif
-
-            for (int i = 0; i < object.bufferVector.size(); i++) 
-            {
-                std::vector<MaterialProperties> material;
-                object.loadMaterial(i, &material);
-
-                glm::vec3 ambientColor(material[0].Ka.r, material[0].Ka.g, material[0].Ka.b);
-                glm::vec3 diffuseColor(material[0].Kd.r, material[0].Kd.g, material[0].Kd.b);
-                glm::vec3 specularColor(material[0].Ks.r, material[0].Ks.g, material[0].Ks.b);
-
-                shader.setVec3("material.Ka", ambientColor);
-                shader.setVec3("material.Kd", diffuseColor);
-                shader.setVec3("material.Ks", specularColor);
-
-                shader.setFloat("material.Ns", material[0].Ns);
-                shader.setInt("map_Ka", 0);
-                shader.setInt("map_Kd", 1);
-                shader.setInt("map_Ks", 2);
-            }
             
             glEnable(GL_DEPTH_TEST);
             Running = true;
-            while (Running) 
+            while (Running)
             {
                 LARGE_INTEGER frequency, start, end;
 
@@ -679,7 +664,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                 glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                
+
                 // bind texture
                 glActiveTexture(GL_TEXTURE0);
                 diffuseTexture.use();
@@ -687,6 +672,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 specularTexture.use();
                 glActiveTexture(GL_TEXTURE2);
                 bumpTexture.use();
+                glActiveTexture(GL_TEXTURE3);
+                emissiveTexture.use();
 
                 // activate shader
                 shader.use();
@@ -694,23 +681,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // 3D projection
                 ThreeDimensionalRendering(&shader);
                 
-                for (int i = 0; i < object.bufferVector.size(); i++) 
+                for (int i = 0; i < object.bufferVector.size(); i++)
                 {
-                    std::vector<MaterialProperties> material;
-                    object.loadMaterial(i, &material);
+                    objl::Material material = object.loadMaterial(i);
 
-                    glm::vec3 ambientColor(material[0].Ka.r, material[0].Ka.g, material[0].Ka.b);
-                    glm::vec3 diffuseColor(material[0].Kd.r, material[0].Kd.g, material[0].Kd.b);
-                    glm::vec3 specularColor(material[0].Ks.r, material[0].Ks.g, material[0].Ks.b);
+                    glm::vec3 ambientColor(material.Ka.X, material.Ka.Y, material.Ka.Z);
+                    glm::vec3 diffuseColor(material.Kd.X, material.Kd.Y, material.Kd.Z);
+                    glm::vec3 specularColor(material.Ks.X, material.Ks.Y, material.Ks.Z);
+                    glm::vec3 emissiveColor(material.Ke.X, material.Ke.Y, material.Ke.Z);
 
                     shader.setVec3("material.Ka", ambientColor);
                     shader.setVec3("material.Kd", diffuseColor);
                     shader.setVec3("material.Ks", specularColor);
+                    shader.setVec3("material.Ke", emissiveColor);
 
-                    shader.setFloat("material.Ns", material[0].Ns);
-                    shader.setInt("map_Ka", 0);
-                    shader.setInt("map_Kd", 1);
-                    shader.setInt("map_Ks", 2);
+                    shader.setFloat("material.Ns", material.Ns);
+                    shader.setInt("map_Kd", 0);
+                    shader.setInt("map_Ks", 1);
+                    shader.setInt("map_Bump", 2);
+                    shader.setInt("map_Ke", 3);
 
                     glBindVertexArray(object.bufferVector[i].VAO);
                     glm::mat4 model = glm::mat4(1.0f);
@@ -731,8 +720,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
 
             ReleaseDC(WindowHandle, DeviceContext);
-            glDeleteVertexArrays(1, &object.VAO);
-            glDeleteBuffers(1, &object.VBO);
+
+            for (int i = 0; i < object.bufferVector.size(); i++) 
+            {
+                glDeleteVertexArrays(1, &object.bufferVector[i].VAO);
+                glDeleteBuffers(1, &object.bufferVector[i].VBO);
+            }
+            
             glDeleteProgram(shader.ID);
         }
         else 

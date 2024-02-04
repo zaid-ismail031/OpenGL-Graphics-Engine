@@ -1,17 +1,53 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\glad.c" />
-    <ClCompile Include="source\ObjectLoader.cpp" />
-    <ClCompile Include="source\MainWindow.cpp" />
-    <ClCompile Include="source\Shaders.cpp" />
-    <ClCompile Include="source\Text.cpp" />
-    <ClCompile Include="source\Textures.cpp" />
+    <ClCompile Include="source\Glad.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\MainWindow.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ObjectLoader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Shaders.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Text.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Textures.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\ObjectLoader.h" />
-    <ClInclude Include="source\Shaders.h" />
-    <ClInclude Include="source\Text.h" />
-    <ClInclude Include="source\Textures.h" />
+    <ClInclude Include="source\ObjectLoader.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Shaders.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Text.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Textures.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{f4b16db7-106c-42e9-ac6f-764faafad3ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{5ebb37a4-c930-45fb-8daf-9ba2b35f8401}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\shaders\material.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="data\shaders\material.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
