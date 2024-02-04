@@ -33,6 +33,9 @@ private:
     std::vector <objl::Material> materialVector;
     void createVertexArrayObject();
     void createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffers);
+    void calculateTangents(std::vector<float>* tangentVector, 
+        std::vector<float>* bitangentVector, 
+        objl::Mesh* mesh);
 };
 
 #endif

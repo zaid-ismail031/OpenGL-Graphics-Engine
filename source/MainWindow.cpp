@@ -594,7 +594,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture bumpTexture("data/models/eyeball/textures/Eye_N.jpg");
             Texture emissiveTexture("data/models/eyeball/textures/Eye_D.jpg");
 
-            Shader shader("data/shaders/Eyeball.vert", "data/shaders/Eyeball.frag");
+            Shader shader("data/shaders/Eyeballs.vert", "data/shaders/Eyeballs.frag");
 
             ObjectLoader object("data/models/eyeball/eyeball.obj");
 
@@ -605,7 +605,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
             Texture emissiveTexture("../data/models/eyeball/textures/Eye_D.jpg");
 
-            Shader shader("../data/shaders/Eyeball.vert", "../data/shaders/Eyeball.frag");
+            Shader shader("../data/shaders/Eyeballs.vert", "../data/shaders/Eyeballs.frag");
 
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
 
@@ -685,7 +685,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // 3D projection
                 ThreeDimensionalRendering(&shader);
                 
-                for (int i = 0; i < object.bufferVector.size(); i++)
+                for (int i = 1; i < object.bufferVector.size(); i++)
                 {
                     objl::Material material = object.loadMaterial(i);
 

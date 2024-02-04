@@ -43,10 +43,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\shaders\material.frag">
+    <None Include="data\shaders\Eyeballs.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="data\shaders\material.vert">
+    <None Include="data\shaders\Eyeballs.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -163,8 +163,8 @@
     <ClInclude Include="source\Textures.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\shaders\material.frag" />
-    <None Include="data\shaders\material.vert" />
+    <None Include="data\shaders\Eyeballs.frag" />
+    <None Include="data\shaders\Eyeballs.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

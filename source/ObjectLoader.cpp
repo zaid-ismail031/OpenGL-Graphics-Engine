@@ -111,6 +111,10 @@ void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffe
 
     std::vector<unsigned int> indexData;
     std::vector<float> vertexData;
+    std::vector<float> tangentData;
+    std::vector<float> bitangentData;
+
+    calculateTangents(&tangentData, &bitangentData, &mesh);
         
     for (int index = 0; index < mesh.Indices.size(); index++)
     {
@@ -127,6 +131,15 @@ void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffe
         vertexData.push_back(mesh.Vertices[vertex].Normal.Z);
         vertexData.push_back(mesh.Vertices[vertex].TextureCoordinate.X);
         vertexData.push_back(mesh.Vertices[vertex].TextureCoordinate.Y);
+        
+        int tangentIndex = 6 * vertex;
+
+        //vertexData.push_back(tangentData[tangentIndex]);
+        //vertexData.push_back(tangentData[tangentIndex + 1]);
+        //vertexData.push_back(tangentData[tangentIndex + 2]);
+        //vertexData.push_back(tangentData[tangentIndex + 3]);
+        //vertexData.push_back(tangentData[tangentIndex + 4]);
+        //vertexData.push_back(tangentData[tangentIndex + 5]);
     }
 
     // Vertex Buffer Object and Vertex Array Object
@@ -146,18 +159,76 @@ void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffe
     buffers->indexCount = mesh.Indices.size();
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // normal coord attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float) * 3));
     glEnableVertexAttribArray(1);
 
     // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float) * 6));
     glEnableVertexAttribArray(2);
 
+    // tangent coord attribute
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float) * 8));
+    glEnableVertexAttribArray(3);
+
+    // bitangent coord attribute
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(sizeof(float) * 11));
+    glEnableVertexAttribArray(4);
+
     glBindVertexArray(0);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+void ObjectLoader::calculateTangents(std::vector<float>* tangentVector, 
+    std::vector<float>* bitangentVector, 
+    objl::Mesh* mesh) 
+{
+    for (int i = 0; i < mesh->Indices.size(); i += 3) 
+    {
+        int i0 = mesh->Indices[i];
+        int i1 = mesh->Indices[i + 1];
+        int i2 = mesh->Indices[i + 2];
+
+        glm::vec3 position0(mesh->Vertices[i0].Position.X, 
+            mesh->Vertices[i0].Position.Y, 
+            mesh->Vertices[i0].Position.Z);
+
+        glm::vec3 position1(mesh->Vertices[i1].Position.X,
+            mesh->Vertices[i1].Position.Y,
+            mesh->Vertices[i1].Position.Z);
+
+        glm::vec3 position2(mesh->Vertices[i2].Position.X,
+            mesh->Vertices[i2].Position.Y,
+            mesh->Vertices[i2].Position.Z);
+
+        glm::vec3 edge0(position1 - position0);
+        glm::vec3 edge1(position2 - position1);
+
+        glm::mat3x2 edgeMatrix(edge0.r, edge1.r, edge0.g, edge1.g, edge0.b, edge1.b);
+
+        float deltaU1 = mesh->Vertices[i1].TextureCoordinate.X - mesh->Vertices[i0].TextureCoordinate.X;
+        float deltaV1 = mesh->Vertices[i1].TextureCoordinate.Y - mesh->Vertices[i0].TextureCoordinate.Y;
+        float deltaU2 = mesh->Vertices[i2].TextureCoordinate.X - mesh->Vertices[i2].TextureCoordinate.X;
+        float deltaV2 = mesh->Vertices[i2].TextureCoordinate.Y - mesh->Vertices[i2].TextureCoordinate.Y;
+
+        glm::mat2 deltaUV(deltaV2, -1 * deltaU2, -1 * deltaV1, deltaU1);
+
+        float detUV = glm::determinant(deltaUV);
+
+        glm::mat3x2 tangentMatrix = (1.0f / detUV) * deltaUV * edgeMatrix;
+
+        tangentVector->push_back(tangentMatrix[0][0]);
+        tangentVector->push_back(tangentMatrix[1][0]);
+        tangentVector->push_back(tangentMatrix[2][0]);
+
+        tangentVector->push_back(tangentMatrix[0][1]);
+        tangentVector->push_back(tangentMatrix[1][1]);
+        tangentVector->push_back(tangentMatrix[2][1]);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------------------
