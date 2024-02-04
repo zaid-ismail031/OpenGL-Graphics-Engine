@@ -162,6 +162,10 @@
     <ClInclude Include="source\Text.h" />
     <ClInclude Include="source\Textures.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="data\shaders\material.frag" />
+    <None Include="data\shaders\material.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

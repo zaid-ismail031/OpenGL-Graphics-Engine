@@ -594,7 +594,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture bumpTexture("data/models/eyeball/textures/Eye_N.jpg");
             Texture emissiveTexture("data/models/eyeball/textures/Eye_D.jpg");
 
-            Shader shader("data/shaders/material.vert", "data/shaders/material.frag");
+            Shader shader("data/shaders/Eyeball.vert", "data/shaders/Eyeball.frag");
 
             ObjectLoader object("data/models/eyeball/eyeball.obj");
 
@@ -664,7 +664,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                 glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                
+
                 // bind texture
                 glActiveTexture(GL_TEXTURE0);
                 diffuseTexture.use();
@@ -681,22 +681,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // 3D projection
                 ThreeDimensionalRendering(&shader);
                 
-                for (int i = 0; i < object.bufferVector.size(); i++) 
+                for (int i = 0; i < object.bufferVector.size(); i++)
                 {
-                    std::vector<MaterialProperties> material;
-                    object.loadMaterial(i, &material);
+                    objl::Material material = object.loadMaterial(i);
 
-                    glm::vec3 ambientColor(material[0].Ka.r, material[0].Ka.g, material[0].Ka.b);
-                    glm::vec3 diffuseColor(material[0].Kd.r, material[0].Kd.g, material[0].Kd.b);
-                    glm::vec3 specularColor(material[0].Ks.r, material[0].Ks.g, material[0].Ks.b);
-                    glm::vec3 emissiveColor(material[0].Ke.r, material[0].Ke.g, material[0].Ke.b);
+                    glm::vec3 ambientColor(material.Ka.X, material.Ka.Y, material.Ka.Z);
+                    glm::vec3 diffuseColor(material.Kd.X, material.Kd.Y, material.Kd.Z);
+                    glm::vec3 specularColor(material.Ks.X, material.Ks.Y, material.Ks.Z);
+                    glm::vec3 emissiveColor(material.Ke.X, material.Ke.Y, material.Ke.Z);
 
                     shader.setVec3("material.Ka", ambientColor);
                     shader.setVec3("material.Kd", diffuseColor);
                     shader.setVec3("material.Ks", specularColor);
                     shader.setVec3("material.Ke", emissiveColor);
 
-                    shader.setFloat("material.Ns", material[0].Ns);
+                    shader.setFloat("material.Ns", material.Ns);
                     shader.setInt("map_Kd", 0);
                     shader.setInt("map_Ks", 1);
                     shader.setInt("map_Bump", 2);
@@ -721,8 +720,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
 
             ReleaseDC(WindowHandle, DeviceContext);
-            glDeleteVertexArrays(1, &object.VAO);
-            glDeleteBuffers(1, &object.VBO);
+
+            for (int i = 0; i < object.bufferVector.size(); i++) 
+            {
+                glDeleteVertexArrays(1, &object.bufferVector[i].VAO);
+                glDeleteBuffers(1, &object.bufferVector[i].VBO);
+            }
+            
             glDeleteProgram(shader.ID);
         }
         else 

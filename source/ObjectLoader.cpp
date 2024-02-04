@@ -103,7 +103,7 @@ void ObjectLoader::createVertexArrayObject()
 
 void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffers) 
 {
-    if (this->loader.LoadedMeshes[0].Vertices.empty()) 
+    if (mesh.Vertices.empty()) 
     {
         std::cout << "Error: No vertices in the mesh!" << std::endl;
         return;
@@ -149,13 +149,15 @@ void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffe
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    //// normal coord attribute
+    // normal coord attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 3));
     glEnableVertexAttribArray(1);
 
     // texture coord attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
     glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -168,33 +170,18 @@ void ObjectLoader::loadAllMeshes()
         createElementBufferObject(this->loader.LoadedMeshes[i], &buffer);
         bufferVector.push_back(buffer);
     }
+
+    for (int i = 0; i < this->loader.LoadedMaterials.size(); i++) 
+    {
+        materialVector.push_back(this->loader.LoadedMeshes[i].MeshMaterial);
+    }
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
-void ObjectLoader::loadMaterial(int index, std::vector<MaterialProperties> *materialProps) 
+objl::Material ObjectLoader::loadMaterial(int index)
 {
-    objl::Material material = this->loader.LoadedMeshes[index].MeshMaterial;
-
-    materialProps->push_back(MaterialProperties{
-        .name = material.name,
-        .Ka = {material.Ka.X, material.Ka.Y, material.Ka.Z},
-        .Kd = {material.Kd.X, material.Kd.Y, material.Kd.Z},
-        .Ks = {material.Ks.X, material.Ks.Y, material.Ks.Z},
-        .Ke = {material.Ke.X, material.Ke.Y, material.Ke.Z},
-        .Ns = material.Ns,
-        .Ni = material.Ni,
-        .d = material.d,
-        .illum = material.illum,
-        .map_Ka = material.map_Ka,
-        .map_Kd = material.map_Kd,
-        .map_Ks = material.map_Ks,
-        .map_Ke = material.map_Ke,
-        .map_Ns = material.map_Ns,
-        .map_d = material.map_d,
-        .map_bump = material.map_bump,
-        .refl = material.refl
-    });
+    return materialVector[index];
 }
 
 //-------------------------------------------------------------------------------------------------------------
