@@ -603,8 +603,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
-            Shader shader("../data/shaders/material.vert", "../data/shaders/material.frag");
+            Texture emissiveTexture("../data/models/eyeball/textures/Eye_D.jpg");
+
+            Shader shader("../data/shaders/Eyeball.vert", "../data/shaders/Eyeball.frag");
+
             ObjectLoader object("../data/models/eyeball/eyeball.obj");
+
             object.loadAllMeshes();
 #endif
             
@@ -696,10 +700,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     shader.setVec3("material.Ke", emissiveColor);
 
                     shader.setFloat("material.Ns", material.Ns);
-                    shader.setInt("map_Kd", 0);
-                    shader.setInt("map_Ks", 1);
-                    shader.setInt("map_Bump", 2);
-                    shader.setInt("map_Ke", 3);
+                    shader.setInt("map_Kd", diffuseTexture.textureID);
+                    shader.setInt("map_Ks", specularTexture.textureID);
+                    shader.setInt("map_Bump", bumpTexture.textureID);
+                    shader.setInt("map_Ke", emissiveTexture.textureID);
 
                     glBindVertexArray(object.bufferVector[i].VAO);
                     glm::mat4 model = glm::mat4(1.0f);
