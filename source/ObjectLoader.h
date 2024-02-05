@@ -12,18 +12,20 @@ struct MeshBuffers
     unsigned int VBO;
     unsigned int EBO;
     int indexCount;
+    int vertexCount;
 };
 
 class ObjectLoader 
 {
 public:
-    ObjectLoader(const char* objectPath);
+    ObjectLoader(const char* objectPath, bool normalMapping);
     void loadAllMeshes();
     int getVertexCount();
     int getIndexCount();
     int getMeshCount();
     objl::Material loadMaterial(int index);
     std::vector<MeshBuffers> bufferVector;
+    bool normalMapping;
 
 private:
     objl::Loader loader;
@@ -33,6 +35,9 @@ private:
     std::vector <objl::Material> materialVector;
     void createVertexArrayObject();
     void createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffers);
+    void vertexArrayObjectNormalMapping(objl::Mesh mesh, MeshBuffers* buffers);
+    void calculateTangents(std::vector<float>* newVertexData, 
+        objl::Mesh* mesh);
 };
 
 #endif

@@ -594,17 +594,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Texture bumpTexture("data/models/eyeball/textures/Eye_N.jpg");
             Texture emissiveTexture("data/models/eyeball/textures/Eye_D.jpg");
 
-            Shader shader("data/shaders/Eyeball.vert", "data/shaders/Eyeball.frag");
+            Shader shader("data/shaders/Eyeballs.vert", "data/shaders/Eyeballs.frag");
 
-            ObjectLoader object("data/models/eyeball/eyeball.obj");
+            ObjectLoader object("data/models/eyeball/eyeball.obj", false);
 
             object.loadAllMeshes();
 #else
             Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
-            Shader shader("../data/shaders/material.vert", "../data/shaders/material.frag");
-            ObjectLoader object("../data/models/eyeball/eyeball.obj");
+            Texture emissiveTexture("../data/models/eyeball/textures/Eye_D.jpg");
+
+            Shader shader("../data/shaders/Eyeballs.vert", "../data/shaders/Eyeballs.frag");
+
+            ObjectLoader object("../data/models/eyeball/eyeball.obj", false);
+
             object.loadAllMeshes();
 #endif
             
@@ -681,7 +685,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // 3D projection
                 ThreeDimensionalRendering(&shader);
                 
-                for (int i = 0; i < object.bufferVector.size(); i++)
+                for (int i = 1; i < object.bufferVector.size(); i++)
                 {
                     objl::Material material = object.loadMaterial(i);
 
@@ -696,10 +700,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     shader.setVec3("material.Ke", emissiveColor);
 
                     shader.setFloat("material.Ns", material.Ns);
-                    shader.setInt("map_Kd", 0);
-                    shader.setInt("map_Ks", 1);
-                    shader.setInt("map_Bump", 2);
-                    shader.setInt("map_Ke", 3);
+                    shader.setInt("map_Kd", diffuseTexture.textureID);
+                    shader.setInt("map_Ks", specularTexture.textureID);
+                    shader.setInt("map_Bump", bumpTexture.textureID);
+                    shader.setInt("map_Ke", emissiveTexture.textureID);
 
                     glBindVertexArray(object.bufferVector[i].VAO);
                     glm::mat4 model = glm::mat4(1.0f);
@@ -707,7 +711,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     float angle = 20.0f;
                     model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                     shader.setMat4("model", model);
-                    glDrawElements(GL_TRIANGLES, object.bufferVector[i].indexCount, GL_UNSIGNED_INT, 0);
+
+                    if (object.normalMapping) 
+                    {
+                        glDrawArrays(GL_TRIANGLES, 0, object.bufferVector[i].vertexCount);
+                    }
+                    else 
+                    {
+                        glDrawElements(GL_TRIANGLES, object.bufferVector[i].indexCount, GL_UNSIGNED_INT, 0);
+                    }
                 }
                 
                 glBindVertexArray(0);
