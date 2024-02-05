@@ -596,7 +596,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             Shader shader("data/shaders/Eyeballs.vert", "data/shaders/Eyeballs.frag");
 
-            ObjectLoader object("data/models/eyeball/eyeball.obj");
+            ObjectLoader object("data/models/eyeball/eyeball.obj", false);
 
             object.loadAllMeshes();
 #else
@@ -607,7 +607,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             Shader shader("../data/shaders/Eyeballs.vert", "../data/shaders/Eyeballs.frag");
 
-            ObjectLoader object("../data/models/eyeball/eyeball.obj");
+            ObjectLoader object("../data/models/eyeball/eyeball.obj", false);
 
             object.loadAllMeshes();
 #endif
@@ -711,7 +711,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     float angle = 20.0f;
                     model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                     shader.setMat4("model", model);
-                    glDrawElements(GL_TRIANGLES, object.bufferVector[i].indexCount, GL_UNSIGNED_INT, 0);
+
+                    if (object.normalMapping) 
+                    {
+                        glDrawArrays(GL_TRIANGLES, 0, object.bufferVector[i].vertexCount);
+                    }
+                    else 
+                    {
+                        glDrawElements(GL_TRIANGLES, object.bufferVector[i].indexCount, GL_UNSIGNED_INT, 0);
+                    }
                 }
                 
                 glBindVertexArray(0);
