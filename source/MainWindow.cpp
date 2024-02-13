@@ -596,7 +596,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             Shader shader("data/shaders/Eyeballs.vert", "data/shaders/Eyeballs.frag");
 
-            ObjectLoader object("data/models/eyeball/eyeball.obj", false);
+            ObjectLoader object("data/models/eyeball/eyeball.obj", true);
 
             object.loadAllMeshes();
 #else
@@ -709,7 +709,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, cubePositions[0]);
                     float angle = 20.0f;
-                    model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+                    //model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                     shader.setMat4("model", model);
 
                     if (object.normalMapping) 

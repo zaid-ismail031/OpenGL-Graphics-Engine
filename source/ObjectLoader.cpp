@@ -167,6 +167,9 @@ void ObjectLoader::createElementBufferObject(objl::Mesh mesh, MeshBuffers *buffe
 void ObjectLoader::calculateTangents(std::vector<float>* newVertexData,
     objl::Mesh* mesh)
 {
+    std::vector<glm::vec3> tangentAccumulations(mesh->Vertices.size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> bitangentAccumulations(mesh->Vertices.size(), glm::vec3(0.0f));
+
     for (int i = 0; i < mesh->Indices.size(); i += 3) 
     {
         int i0 = mesh->Indices[i];
@@ -211,8 +214,30 @@ void ObjectLoader::calculateTangents(std::vector<float>* newVertexData,
 
         glm::mat3x2 tangentMatrix = (1.0f / detUV) * deltaUV * edgeMatrix;
 
+        glm::vec3 tangent(tangentMatrix[0][0], tangentMatrix[1][0], tangentMatrix[2][0]);
+        glm::vec3 bitangent(tangentMatrix[0][1], tangentMatrix[1][1], tangentMatrix[2][1]);
+
+        for (int j = 0; j < 3; ++j) 
+        {
+            int vertexIndex = mesh->Indices[i + j];
+            tangentAccumulations[vertexIndex] += tangent;
+            bitangentAccumulations[vertexIndex] += bitangent;
+        }
+
+        tangentAccumulations[i0] += tangent;
+        bitangentAccumulations[i0] += bitangent;
+
+        tangentAccumulations[i1] += tangent;
+        bitangentAccumulations[i1] += bitangent;
+
+        tangentAccumulations[i2] += tangent;
+        bitangentAccumulations[i2] += bitangent;
+
         for (int i = 0; i < vertices.size(); i++) 
         {
+            glm::vec3 normalizedTangent = glm::normalize(tangentAccumulations[mesh->Indices[i]]);
+            glm::vec3 normalizedBitangent = glm::normalize(bitangentAccumulations[mesh->Indices[i]]);
+
             // Positions
             newVertexData->push_back(vertices[i].Position.X);
             newVertexData->push_back(vertices[i].Position.Y);
@@ -228,14 +253,14 @@ void ObjectLoader::calculateTangents(std::vector<float>* newVertexData,
             newVertexData->push_back(vertices[i].TextureCoordinate.Y);
 
             // Tangents
-            newVertexData->push_back(tangentMatrix[0][0]);
-            newVertexData->push_back(tangentMatrix[1][0]);
-            newVertexData->push_back(tangentMatrix[2][0]);
+            newVertexData->push_back(normalizedTangent.x);
+            newVertexData->push_back(normalizedTangent.y);
+            newVertexData->push_back(normalizedTangent.z);
 
             // Bitangents
-            newVertexData->push_back(tangentMatrix[0][1]);
-            newVertexData->push_back(tangentMatrix[1][1]);
-            newVertexData->push_back(tangentMatrix[2][1]);
+            newVertexData->push_back(normalizedBitangent.x);
+            newVertexData->push_back(normalizedBitangent.y);
+            newVertexData->push_back(normalizedBitangent.z);
         }
     }
 }
