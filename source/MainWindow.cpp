@@ -10,6 +10,9 @@
 #include "Text.h"
 #include "Textures.h"
 #include "ObjectLoader.h"
+#ifdef _UWP
+#include "SDL2/SDL.h"
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -89,7 +92,7 @@ global_variable XGetState *DyXInputGetState = XInputGetStateStub;
 global_variable XSetState *DyXInputSetState = XInputSetStateStub;
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 void *GetAnyGLFuncAddress(const char *name)
 {
     void *p = (void *)wglGetProcAddress(name);
@@ -103,6 +106,7 @@ void *GetAnyGLFuncAddress(const char *name)
 
     return p;
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
 
@@ -119,7 +123,7 @@ internal void Win32LoadXInput(void)
 }
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 internal WindowDimensions GetWindowDimensions(HWND Window) 
 {
     WindowDimensions Dimensions;
@@ -132,6 +136,7 @@ internal WindowDimensions GetWindowDimensions(HWND Window)
 
     return Dimensions;
 }
+#endif
 
 
 //-------------------------------------------------------------------------------------------------------------
@@ -285,7 +290,7 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
 
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 internal void RenderWeirdGradient(OffScreenBuffer *Buffer, int XOffset, int YOffset) 
 {
     uint8_t *Row = (uint8_t *)Buffer->Memory;
@@ -313,9 +318,10 @@ internal void RenderWeirdGradient(OffScreenBuffer *Buffer, int XOffset, int YOff
         Row += Buffer->Pitch;
     }
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 internal void ResizeDIBSection(OffScreenBuffer *Buffer, int Width, int Height) 
 {
     if (Buffer->Memory) 
@@ -339,9 +345,10 @@ internal void ResizeDIBSection(OffScreenBuffer *Buffer, int Width, int Height)
 
     Buffer->Pitch = Buffer->Width * Buffer->BytesPerPixel;
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int ClientWidth, int ClientHeight) 
 {
     StretchDIBits(
@@ -353,8 +360,10 @@ internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int 
         DIB_RGB_COLORS, SRCCOPY
     );
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
+#ifdef VS_BUILD
 
 internal void MouseLook(HWND *hwnd, short *lastX, short *lastY) 
 {
@@ -409,9 +418,10 @@ internal void MouseLook(HWND *hwnd, short *lastX, short *lastY)
     front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
     cameraFront = glm::normalize(front);
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 {
     LRESULT Result = 0;
@@ -548,9 +558,10 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
     return Result;
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
-
+#ifdef VS_BUILD
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
 {
     Win32LoadXInput();
@@ -753,5 +764,83 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     return 0;
 }
+
+#endif
+
+
+#ifdef _UWP
+// You can locally declare a SDL_main function or call to a DLL export (mingw works nice for this) 
+int SDL_main(int argc, char* argv[])
+{
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        return -1;
+    }
+
+    // Set OpenGL attributes
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    // Create window
+    SDL_Window* window = SDL_CreateWindow(
+        "Sample Green Screen",      // Window title (not really used)
+        SDL_WINDOWPOS_UNDEFINED,    // Window positions not used
+        SDL_WINDOWPOS_UNDEFINED,
+        640,                        // Width of framebuffer
+        480,                        // Height of framebuffer
+        SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP // Flags, need FULLSCREEN to stretch a lower res
+    );
+
+    if (!window) {
+        SDL_Quit();
+        return -1;
+    }
+
+    // Create OpenGL context
+    SDL_GLContext glContext = SDL_GL_CreateContext(window);
+    if (!glContext) {
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+
+    SDL_GL_MakeCurrent(window, glContext);
+
+    // Load extensions after creating context
+    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
+
+    SDL_Event event;
+    while (1) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                break;
+            }
+        }
+
+        // Set clear color to green
+        glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // RGBA
+        glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
+
+        // Swap buffers
+        SDL_GL_SwapWindow(window);
+    }
+
+    // Cleanup
+    SDL_GL_DeleteContext(glContext);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+
+}
+
+// Entry point into app (Note, SDL doesn't like being init from here you must call SDL_main)
+int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR argv, int argc)
+{
+    return SDL_WinRTRunApp(SDL_main, NULL);
+}
+
+#endif
 
 //-------------------------------------------------------------------------------------------------------------
