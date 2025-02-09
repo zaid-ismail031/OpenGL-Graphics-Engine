@@ -149,22 +149,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\Glad.c" />
-    <ClCompile Include="source\ObjectLoader.cpp" />
-    <ClCompile Include="source\MainWindow.cpp" />
-    <ClCompile Include="source\Shaders.cpp" />
-    <ClCompile Include="source\Text.cpp" />
-    <ClCompile Include="source\Textures.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="source\ObjectLoader.h" />
-    <ClInclude Include="source\Shaders.h" />
-    <ClInclude Include="source\Text.h" />
-    <ClInclude Include="source\Textures.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="data\shaders\Eyeballs.frag" />
     <None Include="data\shaders\Eyeballs.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Glad.c" />
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="ObjectLoader.cpp" />
+    <ClCompile Include="Shaders.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="Textures.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ObjectLoader.h" />
+    <ClInclude Include="Shaders.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="Textures.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

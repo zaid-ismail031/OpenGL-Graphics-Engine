@@ -589,14 +589,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
 #ifdef VS_BUILD
-            Texture diffuseTexture("data/models/eyeball/textures/Eye_D.jpg");
-            Texture specularTexture("data/models/eyeball/textures/Eye_D.jpg");
-            Texture bumpTexture("data/models/eyeball/textures/Eye_N.jpg");
-            Texture emissiveTexture("data/models/eyeball/textures/Eye_D.jpg");
+            Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
+            Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
+            Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
+            Texture emissiveTexture("../data/models/eyeball/textures/Eye_D.jpg");
 
-            Shader shader("data/shaders/Eyeballs.vert", "data/shaders/Eyeballs.frag");
+            Shader shader("../data/shaders/Eyeballs.vert", "../data/shaders/Eyeballs.frag");
 
-            ObjectLoader object("data/models/eyeball/eyeball.obj", false);
+            ObjectLoader object("../data/models/eyeball/eyeball.obj", false);
 
             object.loadAllMeshes();
 #else

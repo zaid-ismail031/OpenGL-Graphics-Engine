@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{f4b16db7-106c-42e9-ac6f-764faafad3ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{5ebb37a4-c930-45fb-8daf-9ba2b35f8401}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\shaders\Eyeballs.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="data\shaders\Eyeballs.vert">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Glad.c" />
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="ObjectLoader.cpp" />
+    <ClCompile Include="Shaders.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="Textures.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ObjectLoader.h" />
+    <ClInclude Include="Shaders.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="Textures.h" />
+  </ItemGroup>
+</Project>
