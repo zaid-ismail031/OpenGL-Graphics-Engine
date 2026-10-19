@@ -21,13 +21,11 @@
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="ObjectLoader.cpp" />
     <ClCompile Include="Shaders.cpp" />
-    <ClCompile Include="Text.cpp" />
     <ClCompile Include="Textures.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="Shaders.h" />
-    <ClInclude Include="Text.h" />
     <ClInclude Include="Textures.h" />
   </ItemGroup>
 </Project>

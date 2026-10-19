@@ -6,7 +6,6 @@
 #include <xinput.h>
 #include <glad/glad.h>
 #include "Shaders.h"
-#include "Text.h"
 #include "Textures.h"
 #include "ObjectLoader.h"
 

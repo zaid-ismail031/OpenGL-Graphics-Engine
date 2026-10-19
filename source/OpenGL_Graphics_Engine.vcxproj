@@ -93,7 +93,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);$(SolutionDir)linking\libs\freetype\freetype.lib;user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -111,7 +111,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);$(SolutionDir)linking\libs\freetype\freetype.lib;user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -126,7 +126,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\linking\libs\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);$(SolutionDir)linking\libs\freetype\freetype.lib;user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,7 +145,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\linking\libs\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);$(SolutionDir)linking\libs\freetype\freetype.lib;user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);user32.lib;gdi32.lib;opengl32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -157,13 +157,11 @@
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="ObjectLoader.cpp" />
     <ClCompile Include="Shaders.cpp" />
-    <ClCompile Include="Text.cpp" />
     <ClCompile Include="Textures.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="Shaders.h" />
-    <ClInclude Include="Text.h" />
     <ClInclude Include="Textures.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
