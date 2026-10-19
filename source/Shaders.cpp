@@ -86,20 +86,6 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 
 //-------------------------------------------------------------------------------------------------------------
 
-void Shader::alterFragmentShader(const char* fragmentPath, const char* uniformVariableName, double programElapsedTime) 
-{
-    int vertexColorLocation = glGetUniformLocation(this->ID, uniformVariableName);
-
-    if (vertexColorLocation != -1) 
-    {
-        float greenValue = (sin(programElapsedTime) / 2) + 0.5;
-        glUseProgram(this->ID);
-        glUniform4f(vertexColorLocation, 0, greenValue, 0, 1);
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------------
-
 void Shader::use() 
 {
     glUseProgram(this->ID);

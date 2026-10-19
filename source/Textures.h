@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <glad/glad.h>
 
 #ifndef TEXTURES_H

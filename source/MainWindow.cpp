@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <windowsx.h>
-#include <winuser.h>
 #include <thread>
 #include <math.h>
 #include <stdint.h>
@@ -19,43 +18,14 @@
 #define local_persist static
 #define global_variable static
 
-// WIN32 STUFF IS THANKS TO MOLLY ROCKET'S HANDMADE HERO WEB SERIES AT https://handmadehero.org/ 
-// OPENGL STUFF IS THANKS TO THE BOOK "LEARN OPENGL - GRAPHICS PROGRAMMING" BY JOEY DE VRIES
-
-struct OffScreenBuffer
-{
-    BITMAPINFO Info;
-    void *Memory;
-    int Width;
-    int Height;
-    int Pitch;
-    int BytesPerPixel;
-};
-
 global_variable bool Running;
-global_variable OffScreenBuffer BackBuffer;
 global_variable double ProgramElapsedTime;
 global_variable bool mouseCaptured;
-
 
 struct WindowDimensions
 {
     int Width;
     int Height;
-};
-
-// world space positions of our cubes
-glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 global_variable float CameraPositionZ = -3.0f;
@@ -65,8 +35,8 @@ global_variable glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 global_variable glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 global_variable glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-global_variable short yaw = -90;
-global_variable short pitch = 0;
+global_variable float yaw = -90;
+global_variable float pitch = 0;
 
 
 #define XINPUTGETSTATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
@@ -120,6 +90,18 @@ internal void Win32LoadXInput(void)
 
 //-------------------------------------------------------------------------------------------------------------
 
+internal void UpdateCameraFront()
+{
+    pitch = glm::clamp(pitch, -89.0f, 89.0f);
+    glm::vec3 front;
+    front.x = cos(glm::radians((float)yaw)) * cos(glm::radians((float)pitch));
+    front.y = sin(glm::radians((float)pitch));
+    front.z = sin(glm::radians((float)yaw)) * cos(glm::radians((float)pitch));
+    cameraFront = glm::normalize(front);
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
 internal WindowDimensions GetWindowDimensions(HWND Window) 
 {
     WindowDimensions Dimensions;
@@ -146,27 +128,19 @@ internal void OpenGLFrameBufferSizeCallback(HWND Window, int width, int height)
 
 internal void ThreeDimensionalRendering(Shader *shader) 
 {
-    //model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-
-    float camX = sin(ProgramElapsedTime) * 10.0f;
-    float camZ = cos(ProgramElapsedTime) * 10.0f;
-
     // Create view matrix
     glm::mat4 view = glm::mat4(1.0f);
     // The LookAt function requires a position, target and up vector respectively
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    //view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Create projection matrix
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     // Lighting calcs
-    glm::vec3 objectColor(1.0f, 0.5f, 0.31f);
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-    shader->setVec3("objectColor", objectColor);
     shader->setVec3("lightColor", lightColor);
     shader->setVec3("lightPos", lightPos);
 
@@ -178,6 +152,7 @@ internal void ThreeDimensionalRendering(Shader *shader)
 
 internal void HandleKeyboardInputs(WPARAM VKCode) 
 {
+    UpdateCameraFront();
     const float cameraSpeed = 0.1f; // adjust accordingly
     if (VKCode == 0x57) 
     {
@@ -217,15 +192,6 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
             pitch = 89;
         if (pitch < -89)
             pitch = -89;
-
-        float floatYaw = (float)yaw;
-        float floatPitch = (float)pitch;
-
-        glm::vec3 front;
-        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        front.y = sin(glm::radians(floatPitch));
-        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_DOWN) 
     {
@@ -237,41 +203,16 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
             pitch = 89;
         if (pitch < -89)
             pitch = -89;
-
-        float floatYaw = (float)yaw;
-        float floatPitch = (float)pitch;
-
-        glm::vec3 front;
-        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        front.y = sin(glm::radians(floatPitch));
-        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_LEFT) 
     {
         // Left Arrow Key
         yaw -= 5;
-        float floatYaw = (float)yaw;
-        float floatPitch = (float)pitch;
-
-        glm::vec3 front;
-        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        front.y = sin(glm::radians(floatPitch));
-        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_RIGHT) 
     {
         // Right Arrow Key
         yaw += 5;
-        float floatYaw = (float)yaw;
-        float floatPitch = (float)pitch;
-
-        glm::vec3 front;
-        front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        front.y = sin(glm::radians(floatPitch));
-        front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-        cameraFront = glm::normalize(front);
     }
     else if (VKCode == VK_ESCAPE) 
     {
@@ -283,131 +224,39 @@ internal void HandleKeyboardInputs(WPARAM VKCode)
     }
 }
 
-
 //-------------------------------------------------------------------------------------------------------------
 
-internal void RenderWeirdGradient(OffScreenBuffer *Buffer, int XOffset, int YOffset) 
+internal void SetMouseCaptured(HWND hwnd, bool captured)
 {
-    uint8_t *Row = (uint8_t *)Buffer->Memory;
-
-    for (int Y = 0; Y < Buffer->Height; ++Y)
+    if (captured == mouseCaptured) 
     {
-        uint32_t *Pixel = (uint32_t *)Row;
+        return;   // ShowCursor is a counter, so don't double-call it
+    }
+    mouseCaptured = captured;
 
-        for (int X = 0; X < Buffer->Width; ++X) 
-        {
-            uint8_t Blue = X + XOffset;
-            uint8_t Green = Y + YOffset;
-            uint8_t Red = Y + YOffset;
-
-            *Pixel++ = (Red << 16) |(Green << 8 )| Blue;
-
-            // Example of a bit-shift using binary numbers
-            // 01001011 00000000 00000000  (Red shifted)
-            // 00000000 01001011 00000000  (Green shifted)
-            // 00000000 00000000 00011001  (Blue)
-            // ---------------------------
-            // 01001011 01001011 00011001  (Result)
-        }
-
-        Row += Buffer->Pitch;
+    if (captured)
+    {
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        MapWindowPoints(hwnd, nullptr, (POINT*)&rect, 2);   // client to screen coords
+        ClipCursor(&rect);                                  // keep the cursor inside the window
+        ShowCursor(FALSE);
+    }
+    else
+    {
+        ClipCursor(nullptr);
+        ShowCursor(TRUE);
     }
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
-internal void ResizeDIBSection(OffScreenBuffer *Buffer, int Width, int Height) 
+internal void MouseLook(float dx, float dy) 
 {
-    if (Buffer->Memory) 
-    {
-        VirtualFree(Buffer->Memory, 0, MEM_RELEASE);
-    }
-
-    Buffer->Width = Width;
-    Buffer->Height = Height;
-    Buffer->BytesPerPixel = 4;
-
-    Buffer->Info.bmiHeader.biSize = sizeof(Buffer->Info.bmiHeader);
-    Buffer->Info.bmiHeader.biWidth = Buffer->Width;
-    Buffer->Info.bmiHeader.biHeight = -Buffer->Height;
-    Buffer->Info.bmiHeader.biPlanes = 1;
-    Buffer->Info.bmiHeader.biBitCount = 32;
-    Buffer->Info.bmiHeader.biCompression = BI_RGB;
-    
-    int BitmapMemorySize = (Buffer->Width * Buffer->Height) * Buffer->BytesPerPixel;
-    Buffer->Memory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
-
-    Buffer->Pitch = Buffer->Width * Buffer->BytesPerPixel;
-}
-
-//-------------------------------------------------------------------------------------------------------------
-
-internal void Win32UpdateWindow(OffScreenBuffer *Buffer, HDC DeviceContext, int ClientWidth, int ClientHeight) 
-{
-    StretchDIBits(
-        DeviceContext,
-        0, 0, ClientWidth, ClientHeight,
-        0, 0, Buffer->Width, Buffer->Height,
-        Buffer->Memory,
-        &Buffer->Info,
-        DIB_RGB_COLORS, SRCCOPY
-    );
-}
-
-//-------------------------------------------------------------------------------------------------------------
-
-internal void MouseLook(HWND *hwnd, short *lastX, short *lastY) 
-{
-    TRACKMOUSEEVENT MouseEvent;
-
-    MouseEvent.cbSize = sizeof(TRACKMOUSEEVENT);
-    MouseEvent.dwFlags = TME_HOVER;
-    MouseEvent.hwndTrack = *hwnd;
-    MouseEvent.dwHoverTime = HOVER_DEFAULT;
-
-    bool IsTrackingMouse = TrackMouseEvent(&MouseEvent);
-
-    POINT cursorPosition;
-    GetCursorPos(&cursorPosition);
-
-    //short xPos = GET_X_LPARAM(lParam); 
-    //short yPos = GET_Y_LPARAM(lParam);
-    long xPos = cursorPosition.x;
-    long yPos = cursorPosition.y;
-
-    if (fabs(xPos - *lastX) < 0.1 || fabs(yPos - *lastY) < 0.1) 
-    {
-        return;
-    }
-
-    short originalX = 400;
-    short originalY = 300;
-
-    const float sensitivity = 0.01f;
-
-    short xOffset = (xPos - originalX) * sensitivity;
-    short yOffset = (originalY - yPos) * sensitivity;
-
-    *lastX = (short)xPos;
-    *lastY = (short)yPos;
-
-    yaw += xOffset;
-    pitch += yOffset;
-
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
-    if (pitch > 89)
-        pitch = 89;
-    if (pitch < -89)
-        pitch = -89;
-    
-    float floatYaw = (float)yaw;
-    float floatPitch = (float)pitch;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-    front.y = sin(glm::radians(floatPitch));
-    front.z = sin(glm::radians(floatYaw)) * cos(glm::radians(floatPitch));
-    cameraFront = glm::normalize(front);
+    const float sensitivity = 0.1f;   // degrees per mouse count
+    yaw += dx * sensitivity;
+    pitch -= dy * sensitivity;        // raw Y grows downward, so subtract
+    UpdateCameraFront();
 }
 
 //-------------------------------------------------------------------------------------------------------------
@@ -461,14 +310,27 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             //MessageBoxA(0,(char*)glGetString(GL_VERSION), "OPENGL VERSION",0);
         }
             break;
+        case WM_INPUT:
+        {
+            RAWINPUT raw;
+            UINT size = sizeof(raw);
+            GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &raw, &size, sizeof(RAWINPUTHEADER));
+
+            if (mouseCaptured && raw.header.dwType == RIM_TYPEMOUSE && !(raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE))
+            {
+                MouseLook((float)raw.data.mouse.lLastX, (float)raw.data.mouse.lLastY);
+            }
+            Result = DefWindowProc(hwnd, uMsg, wParam, lParam);   // required so Windows can clean up
+        }
+            break;
         case WM_LBUTTONDOWN:
         {
-            //mouseCaptured = SetCapture(hwnd); // Capture mouse
+            SetMouseCaptured(hwnd, true);
         }
             break;
         case WM_RBUTTONDOWN:
         {
-            //mouseCaptured = false; // Capture mouse
+            
         }
             break;
         case WM_MOUSEMOVE:
@@ -508,6 +370,10 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             break;
         case WM_KEYDOWN:
         {
+            if (wParam == VK_ESCAPE) 
+            {
+                SetMouseCaptured(hwnd, false);
+            }
             HandleKeyboardInputs(wParam);
         }
             break;
@@ -533,8 +399,8 @@ internal LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             HDC DeviceContext = BeginPaint(hwnd, &Paint);
 
             WindowDimensions Dimensions = GetWindowDimensions(hwnd);
+            ValidateRect(hwnd, NULL);
 
-            Win32UpdateWindow(&BackBuffer, DeviceContext, Dimensions.Width, Dimensions.Height);
             EndPaint(hwnd, &Paint);
             Result = 0;
         }
@@ -580,15 +446,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         if (WindowHandle != NULL) 
         {
-            // Initialize last MOUSE X and Y to centre of screen since we are rendering at 800x600
-            short lastMouseX = 400; 
-            short lastMouseY = 300;
+            RAWINPUTDEVICE rid = {};
+            rid.usUsagePage = 0x01;   // generic desktop controls
+            rid.usUsage     = 0x02;   // mouse
+            rid.hwndTarget  = WindowHandle;
+            RegisterRawInputDevices(&rid, 1, sizeof(rid));
+
             HDC DeviceContext = GetDC(WindowHandle);
 
             WindowDimensions Dimensions = GetWindowDimensions(WindowHandle);
             OpenGLFrameBufferSizeCallback(WindowHandle, Dimensions.Width, Dimensions.Height);
 
-#ifdef VS_BUILD
             Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
             Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
@@ -599,18 +467,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             ObjectLoader object("../data/models/eyeball/eyeball.obj", false);
 
             object.loadAllMeshes();
-#else
-            Texture diffuseTexture("../data/models/eyeball/textures/Eye_D.jpg");
-            Texture specularTexture("../data/models/eyeball/textures/Eye_D.jpg");
-            Texture bumpTexture("../data/models/eyeball/textures/Eye_N.jpg");
-            Texture emissiveTexture("../data/models/eyeball/textures/Eye_D.jpg");
-
-            Shader shader("../data/shaders/Eyeballs.vert", "../data/shaders/Eyeballs.frag");
-
-            ObjectLoader object("../data/models/eyeball/eyeball.obj", false);
-
-            object.loadAllMeshes();
-#endif
             
             glEnable(GL_DEPTH_TEST);
             Running = true;
@@ -707,7 +563,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                     glBindVertexArray(object.bufferVector[i].VAO);
                     glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, cubePositions[0]);
                     float angle = 20.0f;
                     model = glm::rotate(model, (float)ProgramElapsedTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
                     shader.setMat4("model", model);

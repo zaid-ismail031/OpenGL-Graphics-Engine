@@ -30,7 +30,7 @@ Texture::Texture(const char* texturePath)
     }
     else 
     {
-        OutputDebugStringA("Failed to load texture\n");
+        //OutputDebugStringA("Failed to load texture\n");
     }
 
     stbi_image_free(data);
